@@ -325,10 +325,13 @@
 	тЗнач.Колонки.Добавить("barcode");
 	тЗнач.Колонки.Добавить("barcodes");
 	тЗнач.Колонки.Добавить("price");
+	тЗнач.Колонки.Добавить("additionalprices");
+
 	тЗнач.Колонки.Добавить("options");
+	тЗнач.Колонки.Добавить("sellrestrictperiods");
 	тЗнач.Колонки.Добавить("taracapacity");
 	
-	
+	            
 	
 	
 	
@@ -357,7 +360,8 @@
 		options = Сформироватьoptions(тСтрока);
 
 		нСтрока.options = options;
-		нСтрока.barcodes = Новый Массив;
+		нСтрока.sellrestrictperiods = Сформироватьsellrestrictperiods(тСтрока,0, Новый Массив);
+		нСтрока.barcodes = Сформироватьbarcodes(тСтрока,0, Новый Массив); // 0 - если вернуть пустой массив
 		
 		нСтрока.inventgroup = СокрЛП(тСтрока.inventgroup);
 		нСтрока.inventcode =  СтрЗаменить(тСтрока.inventcode,Символ(32),"");//СокрЛП(тСтрока.inventcode);
@@ -369,6 +373,8 @@
 		нСтрока.alcoholpercent = тСтрока.alcoholpercent;
 		нСтрока.articul = тСтрока.articul;
 		нСтрока.price = тСтрока.price;
+		
+		нСтрока.additionalprices =  Сформироватьadditionalprices(тСтрока,0, Новый Массив);
 		нСтрока.taracapacity = тСтрока.taracapacity;
 		
 		
@@ -876,20 +882,64 @@
 	
 КонецФункции // ()
 
+// тСтрока - Строка результата запроса
+// Заполнить - 0, не заполнять массив, только создавать его
+// Данные - массив или структура для заполнения  barcodes
 
-Функция Сформироватьbarcodes()
-
-	 barcodes = Новый Структура;
-	 
-	 Возврат barcodes;
-
+Функция Сформироватьbarcodes(тСтрока,Заполнить,Данные)
+	
+	barcodes = Новый Массив;
+	
+	Если Не Заполнить = 0 Тогда
+		
+		Tbarcodes = Новый Структура;
+		Tbarcodes.Вставить("additionalprices",Сформироватьadditionalprices(тСтрока,0, Новый Массив));//!!!!!!!!!!!!!!!!!!
+		Tbarcodes.Вставить("aspectvaluesetcode",0);
+		Tbarcodes.Вставить("barcode","");
+		Tbarcodes.Вставить("cquant",0);
+		
+		Tbarcodes.Вставить("measurecode",0);
+		Tbarcodes.Вставить("minprice",0);
+		Tbarcodes.Вставить("name","");
+		Tbarcodes.Вставить("packingmeasure",0);
+		Tbarcodes.Вставить("packingprice",0);
+		Tbarcodes.Вставить("price",0);
+		Tbarcodes.Вставить("quantdefault",0);
+		Tbarcodes.Вставить("minretailprice",0);
+		Tbarcodes.Вставить("customsdeclarationnumber","");
+		Tbarcodes.Вставить("tmctype",0);
+		Tbarcodes.Вставить("ntin","");
+		
+		//Дополнить заполнение массива
+		 barcodes.Добавить(Tbarcodes);
+	КонецЕсли; 
+	//
+	
+	
+	Возврат barcodes;
+	
 	
 КонецФункции // ()
 
 
-Функция Сформироватьadditionalprices()
+// тСтрока - Строка результата запроса
+// Заполнить - 0, не заполнять массив, только создавать его
+// Данные - массив или структура для заполнения  barcodes
 
-	 additionalprices = Новый Структура;
+Функция Сформироватьadditionalprices(тСтрока,Заполнить,Данные)
+
+	 additionalprices = Новый Массив;
+	 
+	 	Если Не Заполнить = 0 Тогда
+		
+		Tadditionalprices = Новый Структура;
+		Tadditionalprices.Вставить("pricecode",0);
+		Tadditionalprices.Вставить("price",0);
+		Tadditionalprices.Вставить("name","");
+				//Дополнить заполнение массива
+		 additionalprices.Добавить(Tadditionalprices);
+	КонецЕсли; 
+
 	 
 	 Возврат additionalprices;
 
@@ -897,9 +947,27 @@
 КонецФункции // ()
 
 
-Функция Сформироватьsellrestrictperiods()
+// тСтрока - Строка результата запроса
+// Заполнить - 0, не заполнять массив, только создавать его
+// Данные - массив или структура для заполнения  barcodes
 
-	 sellrestrictperiods = Новый Структура;
+Функция Сформироватьsellrestrictperiods(тСтрока,Заполнить,Данные)
+	 
+	 	 sellrestrictperiods = Новый Массив;
+	 
+	 	Если Не Заполнить = 0 Тогда
+		
+		Tsellrestrictperiods = Новый Структура;
+		Tsellrestrictperiods.Вставить("dateend","0001-01-01"); ///Дата!!!
+		Tsellrestrictperiods.Вставить("datestart","0001-01-01");
+		Tsellrestrictperiods.Вставить("dayend",0);
+		Tsellrestrictperiods.Вставить("daystartdaystart",0);
+		Tsellrestrictperiods.Вставить("datimeendyend","00:00:00"); /// Время
+		Tsellrestrictperiods.Вставить("timestart","00:00:00"); /// Время
+				//Дополнить заполнение массива
+		 sellrestrictperiods.Добавить(Tsellrestrictperiods);
+	КонецЕсли; 
+
 	 
 	 Возврат sellrestrictperiods;
 
@@ -942,14 +1010,42 @@
 		options.inventitemoptions.tobacco = 0;
 	КонецЕсли;	
 	
+	Данные = "";
+	 priceoptions = Сформироватьpriceoptions(тСтрока,0,Данные);
+	 options.Вставить("priceoptions",priceoptions);
+	 
+	 quantityoptions = Сформироватьquantityoptions(тСтрока,0,Данные); 
+	  options.Вставить("quantityoptions",quantityoptions);
+
 	Возврат options;
 	
 КонецФункции // ()
 
 
-Функция Сформироватьquantityoptions()
+Функция Сформироватьquantityoptions(тСтрока,Заполнить,Данные)
 
 	 quantityoptions = Новый Структура;
+	 Если Не Заполнить = 0 Тогда
+		
+		
+		quantityoptions.Вставить("enabledefaultquantity",1);
+		quantityoptions.Вставить("enablequantitylimit",0);
+		quantityoptions.Вставить("quantitylimit",0);
+		quantityoptions.Вставить("enablequantityscales",1);
+		quantityoptions.Вставить("enablequantitybarcode",1);
+		
+		quantityoptions.Вставить("enablequantitymanual",1);
+		quantityoptions.Вставить("requirequantitymanual",0);
+		quantityoptions.Вставить("requirequantitybarcode",0);
+		quantityoptions.Вставить("requirequantityscales",0);
+		
+		quantityoptions.Вставить("enabledocumentquantitylimit",0);
+		quantityoptions.Вставить("autogetquantityfromscales",0);
+		quantityoptions.Вставить("documentquantlimit",0);
+
+		
+	КонецЕсли; 
+
 	 
 	 Возврат quantityoptions;
 
@@ -957,11 +1053,22 @@
  КонецФункции // ()
  
  
- Функция Сформироватьpriceoptions()
+ Функция Сформироватьpriceoptions(тСтрока,Заполнить,Данные)
 
 	 priceoptions = Новый Структура;
 	 
-	 Возврат priceoptions;
+	Если Не Заполнить = 0 Тогда
+		
+		
+		priceoptions.Вставить("enablepricemanual",1);
+		priceoptions.Вставить("requirepricemanual",0);
+		priceoptions.Вставить("requireselectprice",0);
+		priceoptions.Вставить("requiredeferredprice",0);
+		priceoptions.Вставить("enableexcisemarkprice",0); 				
+		
+	КонецЕсли; 
+ 
+ Возврат priceoptions;
 
 	
 КонецФункции // ()
