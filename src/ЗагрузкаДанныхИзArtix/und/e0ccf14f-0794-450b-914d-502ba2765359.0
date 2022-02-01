@@ -163,9 +163,8 @@
 			// Попытка создания чеков при закрытии смены
 			// Проверяем если вернулась ссылка на кассовую смену, то начинаем процедуру создания чеков
 			    Если текКассоваяСмена <> Неопределено Тогда
-				
-					  ЗагрузитьЧекиНаСервере(текКассоваяСмена.НомерСменыККТ);
-				
+					  ТаблицаШапкиЧеков = ЗагрузитьЧекиНаСервере(текКассоваяСмена.НомерСменыККТ);
+				      СоздатьЧеки(ТаблицаШапкиЧеков);
 				КонецЕсли; 
 			
 		КонецЕсли; 
@@ -506,17 +505,108 @@
 КонецФункции	
 
 &НаСервере
-Процедура ЗагрузитьЧекиНаСервере(тНомерСмены)
+Функция ЗагрузитьЧекиНаСервере(тНомерСмены)
 	
-	// Получить чеки  по номеру смены
+	// Получить чеки  по номеру смены и коду кассы
 	
-КонецПроцедуры
-
+		
+	Запрос = Новый Запрос;
+	Запрос.Текст = 
+		""ВЫБРАТЬ
+		|	document.documentid КАК documentid,
+		|	document.cashcode КАК cashcode,
+		|	document.workshiftid КАК workshiftid,
+		|	document.checknum КАК checknum,
+		|	document.doctype КАК doctype,
+		|	document.dept КАК dept,
+		|	document.scode КАК scode,
+		|	document.time_beg КАК time_beg,
+		|	document.time_end КАК time_end,
+		|	document.vbrate КАК vbrate,
+		|	document.verate КАК verate,
+		|	document.sum1 КАК sum1,
+		|	document.sum2 КАК sum2,
+		|	document.sum2m КАК sum2m,
+		|	document.summode КАК summode,
+		|	document.sumtype КАК sumtype,
+		|	document.disc_perc КАК disc_perc,
+		|	document.disc_abs КАК disc_abs,
+		|	document.sumb КАК sumb,
+		|	document.sumn КАК sumn,
+		|	document.sume КАК sume,
+		|	document.vatsum КАК vatsum,
+		|	document.docnum КАК docnum,
+		|	document.c_link КАК c_link,
+		|	document.closed КАК closed,
+		|	document.opid КАК opid,
+		|	document.dateincrement КАК dateincrement,
+		|	document.buttonid КАК buttonid,
+		|	document.linkeddocumentid КАК linkeddocumentid,
+		|	document.departmentid КАК departmentid,
+		|	document.clientitemid КАК clientitemid,
+		|	document.changed КАК changed,
+		|	document.rtext КАК rtext,
+		|	document.sumcash КАК sumcash,
+		|	document.identifier КАК identifier,
+		|	document.url_egais КАК url_egais,
+		|	document.digital_signature_egais КАК digital_signature_egais,
+		|	document.update_time КАК update_time,
+		|	document.actorcode КАК actorcode,
+		|	document.moneyouttype КАК moneyouttype,
+		|	document.nopdfUrlEgais КАК nopdfUrlEgais,
+		|	document.nopdfDigitalSignatureEgais КАК nopdfDigitalSignatureEgais,
+		|	document.customeraddress КАК customeraddress,
+		|	document.closewithoutprint КАК closewithoutprint,
+		|	document.sourceidentifier КАК sourceidentifier,
+		|	document.frdocnum КАК frdocnum,
+		|	document.frdoccopy КАК frdoccopy,
+		|	document.backreason КАК backreason,
+		|	document.fiscalidentifier КАК fiscalidentifier,
+		|	document.correctionsourcedocnum КАК correctionsourcedocnum,
+		|	document.correctionsourcedocdate КАК correctionsourcedocdate,
+		|	document.correctionreason КАК correctionreason,
+		|	document.correctiontype КАК correctiontype,
+		|	document.waybillprinted КАК waybillprinted,
+		|	document.waybillnumber КАК waybillnumber,
+		|	document.sumnoncash КАК sumnoncash,
+		|	document.sumother КАК sumother
+		|ИЗ
+		|	ВнешнийИсточникДанных.КассовыйСервер.Таблица.document КАК document
+		|ГДЕ
+		|	document.workshiftid = &workshiftid
+		|	И document.cashcode = &cashcode"";
+	
+	Запрос.УстановитьПараметр(""cashcode"", тНомерСмены.cashcode);
+	Запрос.УстановитьПараметр(""workshiftid"", тНомерСмены.shiftnum);
+	
+	РезультатЗапроса = Запрос.Выполнить().Выгрузить();
+	
+	Возврат РезультатЗапроса;
+	
+КонецФункции
 &НаКлиенте
 Процедура ЗагрузитьЧеки(Команда)
 	ЗагрузитьЧекиНаСервере(20);
 КонецПроцедуры
-",
+
+
+// <Описание функции>
+//
+// Параметры:
+//  <Параметр1>  - <Тип.Вид> - <описание параметра>
+//                 <продолжение описания параметра>
+//  <Параметр2>  - <Тип.Вид> - <описание параметра>
+//                 <продолжение описания параметра>
+//
+// Возвращаемое значение:
+//   <Тип.Вид>   - <описание возвращаемого значения>
+//
+Функция СоздатьЧеки(ТаблицаШапкиЧеков);
+
+	
+
+КонецФункции //СоздатьЧеки(ТаблицаШапкиЧеков)
+ ",
 {4,1,
 {9,
 {1},0,"Объект",
