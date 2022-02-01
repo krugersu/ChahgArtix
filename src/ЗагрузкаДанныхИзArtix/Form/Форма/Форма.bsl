@@ -11,23 +11,31 @@
 	// Для каждой не закрытой смены делаем запрос к кассовому серверу и анализируем закрылась ли смена, если
 	// да , то закрываем смену в 1С (возможно в будущем переделать запрос, что бы получать все смены одним запросом
 	// используя в качестве параметра список номеров смен - СписокНеЗакрытыхКассовыхСмен)
-	 Для Каждого тСтрока из СписокНеЗакрытыхКассовыхСмен Цикл
+	Для Каждого тСтрока из СписокНеЗакрытыхКассовыхСмен Цикл
+		
+		// Запрос на получение кассовой смены по номеру
+		ЗапросКассоваяСменаПоНомеру = Новый Запрос;
+		ЗапросКассоваяСменаПоНомеру.Текст = ВернутьТекстЗапросаКассоаяСменаПоНомеру();
+		ЗапросКассоваяСменаПоНомеру.УстановитьПараметр("shiftnum", тСтрока.Значение);
+		РезультатКассоваяСмена = ЗапросКассоваяСменаПоНомеру.Выполнить().Выгрузить();
+		// Если смена закрыта в кассовом сервере, то закрываем ее в 1С
+		Если НЕ РезультатКассоваяСмена.Количество() = 0 Тогда
+			текКассоваяСмена = ЗакрытьКассовуюСмену(РезультатКассоваяСмена);
+			// Попытка создания чеков при закрытии смены
+			// Проверяем если вернулась ссылка на кассовую смену, то начинаем процедуру создания чеков
+			    Если текКассоваяСмена <> Неопределено Тогда
+				
+					  ЗагрузитьЧекиНаСервере(текКассоваяСмена.НомерСменыККТ);
+				
+				КонецЕсли; 
+			
+		КонецЕсли; 
+		
+	КонецЦикла;
 	
-	// Запрос на получение кассовой смены по номеру
-	ЗапросКассоваяСменаПоНомеру = Новый Запрос;
-	ЗапросКассоваяСменаПоНомеру.Текст = ВернутьТекстЗапросаКассоаяСменаПоНомеру();
-	ЗапросКассоваяСменаПоНомеру.УстановитьПараметр("shiftnum", тСтрока.Значение);
-	РезультатКассоваяСмена = ЗапросКассоваяСменаПоНомеру.Выполнить().Выгрузить();
-	// Если смена закрыта в кассовом сервере, то закрываем ее в 1С
-	Если НЕ РезультатКассоваяСмена.Количество() = 0 Тогда
-		   ЗакрытьКассовуюСмену(РезультатКассоваяСмена);
-	КонецЕсли; 
 	
-КонецЦикла;
-
-
 	//2. Затем обрабатываем получение новых смен из кассового сервера 
-
+	
 	// Получаем дату первой незакрытой смены в 1С, для того что бы ограничить период запроса в кассовом сервере
 	shiftnum = 14;
 	ДатаПервойНеЗакрытойСмены = Неопределено;
@@ -41,8 +49,8 @@
 	ЗапросКассовыеСмены.Текст = ВернутьТекстЗапросаКассовыеСмены();
 	ЗапросКассовыеСмены.УстановитьПараметр("time_beg", ДатаПервойНеЗакрытойСмены);
 	Результат = ЗапросКассовыеСмены.Выполнить().Выгрузить();
-
-
+	
+	
 	// Функция по созданию и открытию документов Кассовая смена в 1С
 	МассивКассовыеСмены = ОткрытьКассовуюСмену(Результат);
 	
@@ -67,60 +75,60 @@
 //   <Тип.Вид>   - <описание возвращаемого значения>
 //
 Функция ВернутьТекстЗапросаКассовыеСмены()
-		
-		ТекстЗапроса = 
-		"ВЫБРАТЬ
-		|	workshift.workshiftid КАК workshiftid,
-		|	workshift.storeId КАК storeId,
-		|	workshift.shiftnum КАК shiftnum,
-		|	workshift.cashcode КАК cashcode,
-		|	workshift.cashId КАК cashId,
-		|	workshift.scode КАК scode,
-		|	workshift.time_beg КАК time_beg,
-		|	workshift.time_end КАК time_end,
-		|	workshift.checknum1 КАК checknum1,
-		|	workshift.checknum2 КАК checknum2,
-		|	workshift.vb КАК vb,
-		|	workshift.vn КАК vn,
-		|	workshift.ve КАК ve,
-		|	workshift.mode1 КАК mode1,
-		|	workshift.mode2 КАК mode2,
-		|	workshift.arcpath КАК arcpath,
-		|	workshift.shifttype КАК shifttype,
-		|	workshift.dateincrement КАК dateincrement,
-		|	workshift.shopcode КАК shopcode,
-		|	workshift.changed КАК changed,
-		|	workshift.sumSale КАК sumSale,
-		|	workshift.sumGain КАК sumGain,
-		|	workshift.sumDrawer КАК sumDrawer,
-		|	workshift.version КАК version,
-		|	workshift.postype КАК postype,
-		|	workshift.revision КАК revision,
-		|	workshift.firstchecktime КАК firstchecktime,
-		|	workshift.update_time КАК update_time,
-		|	workshift.sumsalecash КАК sumsalecash,
-		|	workshift.sumsalenoncash КАК sumsalenoncash,
-		|	workshift.sumsaleother КАК sumsaleother,
-		|	workshift.sumgaincash КАК sumgaincash,
-		|	workshift.sumgainnoncash КАК sumgainnoncash,
-		|	workshift.sumrefund КАК sumrefund,
-		|	workshift.sumrefundcash КАК sumrefundcash,
-		|	workshift.sumrefundnoncash КАК sumrefundnoncash,
-		|	workshift.countsale КАК countsale,
-		|	workshift.countrefund КАК countrefund
-		|ИЗ
-		|	ВнешнийИсточникДанных.КассовыйСервер.Таблица.workshift КАК workshift
-		|ГДЕ
+	
+	ТекстЗапроса = 
+	"ВЫБРАТЬ
+	|	workshift.workshiftid КАК workshiftid,
+	|	workshift.storeId КАК storeId,
+	|	workshift.shiftnum КАК shiftnum,
+	|	workshift.cashcode КАК cashcode,
+	|	workshift.cashId КАК cashId,
+	|	workshift.scode КАК scode,
+	|	workshift.time_beg КАК time_beg,
+	|	workshift.time_end КАК time_end,
+	|	workshift.checknum1 КАК checknum1,
+	|	workshift.checknum2 КАК checknum2,
+	|	workshift.vb КАК vb,
+	|	workshift.vn КАК vn,
+	|	workshift.ve КАК ve,
+	|	workshift.mode1 КАК mode1,
+	|	workshift.mode2 КАК mode2,
+	|	workshift.arcpath КАК arcpath,
+	|	workshift.shifttype КАК shifttype,
+	|	workshift.dateincrement КАК dateincrement,
+	|	workshift.shopcode КАК shopcode,
+	|	workshift.changed КАК changed,
+	|	workshift.sumSale КАК sumSale,
+	|	workshift.sumGain КАК sumGain,
+	|	workshift.sumDrawer КАК sumDrawer,
+	|	workshift.version КАК version,
+	|	workshift.postype КАК postype,
+	|	workshift.revision КАК revision,
+	|	workshift.firstchecktime КАК firstchecktime,
+	|	workshift.update_time КАК update_time,
+	|	workshift.sumsalecash КАК sumsalecash,
+	|	workshift.sumsalenoncash КАК sumsalenoncash,
+	|	workshift.sumsaleother КАК sumsaleother,
+	|	workshift.sumgaincash КАК sumgaincash,
+	|	workshift.sumgainnoncash КАК sumgainnoncash,
+	|	workshift.sumrefund КАК sumrefund,
+	|	workshift.sumrefundcash КАК sumrefundcash,
+	|	workshift.sumrefundnoncash КАК sumrefundnoncash,
+	|	workshift.countsale КАК countsale,
+	|	workshift.countrefund КАК countrefund
+	|ИЗ
+	|	ВнешнийИсточникДанных.КассовыйСервер.Таблица.workshift КАК workshift
+	|ГДЕ
 	//	|	workshift.shiftnum = &shiftnum
-		|	 workshift.time_beg > &time_beg";
+	|	 workshift.time_beg > &time_beg";
 	
 	//Запрос.УстановитьПараметр("shiftnum", shiftnum);
-
+	
 	
 	Возврат ТекстЗапроса;
 	
 КонецФункции // ВернутьТекстЗапросаКассовыеСмены()
- 
+
 
 // Формирует запрос по кассовой смене по номеру
 //
@@ -134,55 +142,55 @@
 //   <Тип.Вид>   - <описание возвращаемого значения>
 //
 Функция ВернутьТекстЗапросаКассоаяСменаПоНомеру()
-		
-		ТекстЗапроса = 
-		"ВЫБРАТЬ
-		|	workshift.workshiftid КАК workshiftid,
-		|	workshift.storeId КАК storeId,
-		|	workshift.shiftnum КАК shiftnum,
-		|	workshift.cashcode КАК cashcode,
-		|	workshift.cashId КАК cashId,
-		|	workshift.scode КАК scode,
-		|	workshift.time_beg КАК time_beg,
-		|	workshift.time_end КАК time_end,
-		|	workshift.checknum1 КАК checknum1,
-		|	workshift.checknum2 КАК checknum2,
-		|	workshift.vb КАК vb,
-		|	workshift.vn КАК vn,
-		|	workshift.ve КАК ve,
-		|	workshift.mode1 КАК mode1,
-		|	workshift.mode2 КАК mode2,
-		|	workshift.arcpath КАК arcpath,
-		|	workshift.shifttype КАК shifttype,
-		|	workshift.dateincrement КАК dateincrement,
-		|	workshift.shopcode КАК shopcode,
-		|	workshift.changed КАК changed,
-		|	workshift.sumSale КАК sumSale,
-		|	workshift.sumGain КАК sumGain,
-		|	workshift.sumDrawer КАК sumDrawer,
-		|	workshift.version КАК version,
-		|	workshift.postype КАК postype,
-		|	workshift.revision КАК revision,
-		|	workshift.firstchecktime КАК firstchecktime,
-		|	workshift.update_time КАК update_time,
-		|	workshift.sumsalecash КАК sumsalecash,
-		|	workshift.sumsalenoncash КАК sumsalenoncash,
-		|	workshift.sumsaleother КАК sumsaleother,
-		|	workshift.sumgaincash КАК sumgaincash,
-		|	workshift.sumgainnoncash КАК sumgainnoncash,
-		|	workshift.sumrefund КАК sumrefund,
-		|	workshift.sumrefundcash КАК sumrefundcash,
-		|	workshift.sumrefundnoncash КАК sumrefundnoncash,
-		|	workshift.countsale КАК countsale,
-		|	workshift.countrefund КАК countrefund
-		|ИЗ
-		|	ВнешнийИсточникДанных.КассовыйСервер.Таблица.workshift КАК workshift
-		|ГДЕ
-		|	workshift.shiftnum = &shiftnum
-		|	И НЕ workshift.time_end ЕСТЬ NULL";
+	
+	ТекстЗапроса = 
+	"ВЫБРАТЬ
+	|	workshift.workshiftid КАК workshiftid,
+	|	workshift.storeId КАК storeId,
+	|	workshift.shiftnum КАК shiftnum,
+	|	workshift.cashcode КАК cashcode,
+	|	workshift.cashId КАК cashId,
+	|	workshift.scode КАК scode,
+	|	workshift.time_beg КАК time_beg,
+	|	workshift.time_end КАК time_end,
+	|	workshift.checknum1 КАК checknum1,
+	|	workshift.checknum2 КАК checknum2,
+	|	workshift.vb КАК vb,
+	|	workshift.vn КАК vn,
+	|	workshift.ve КАК ve,
+	|	workshift.mode1 КАК mode1,
+	|	workshift.mode2 КАК mode2,
+	|	workshift.arcpath КАК arcpath,
+	|	workshift.shifttype КАК shifttype,
+	|	workshift.dateincrement КАК dateincrement,
+	|	workshift.shopcode КАК shopcode,
+	|	workshift.changed КАК changed,
+	|	workshift.sumSale КАК sumSale,
+	|	workshift.sumGain КАК sumGain,
+	|	workshift.sumDrawer КАК sumDrawer,
+	|	workshift.version КАК version,
+	|	workshift.postype КАК postype,
+	|	workshift.revision КАК revision,
+	|	workshift.firstchecktime КАК firstchecktime,
+	|	workshift.update_time КАК update_time,
+	|	workshift.sumsalecash КАК sumsalecash,
+	|	workshift.sumsalenoncash КАК sumsalenoncash,
+	|	workshift.sumsaleother КАК sumsaleother,
+	|	workshift.sumgaincash КАК sumgaincash,
+	|	workshift.sumgainnoncash КАК sumgainnoncash,
+	|	workshift.sumrefund КАК sumrefund,
+	|	workshift.sumrefundcash КАК sumrefundcash,
+	|	workshift.sumrefundnoncash КАК sumrefundnoncash,
+	|	workshift.countsale КАК countsale,
+	|	workshift.countrefund КАК countrefund
+	|ИЗ
+	|	ВнешнийИсточникДанных.КассовыйСервер.Таблица.workshift КАК workshift
+	|ГДЕ
+	|	workshift.shiftnum = &shiftnum
+	|	И НЕ workshift.time_end ЕСТЬ NULL";
 	
 	//Запрос.УстановитьПараметр("shiftnum", shiftnum);
-
+	
 	
 	Возврат ТекстЗапроса;
 	
@@ -195,34 +203,34 @@
 	СсылкаНаКассовуюСмену = Документы.КассоваяСмена.ПустаяСсылка();
 	
 	МассивДокументовКассоваяСмена = Новый Массив; 
-	 
+	
 	Для каждого тСтрока Из Результат Цикл
 		СтатасКассовойСмены = ?(тСтрока.time_end <> Null,Перечисления.СтатусыКассовойСмены.Закрыта,Перечисления.СтатусыКассовойСмены.Открыта);
 		Если НЕ ПроверитьНаличиеКассовойСмены(тСтрока.shiftnum, тСтрока.cashcode,тСтрока.shopcode) Тогда
-	
-		 СсылкаНаКассовуюСмену = Документы.КассоваяСмена.СоздатьДокумент();
-		 СсылкаНаКассовуюСмену.Дата = тСтрока.time_beg;
-		 СсылкаНаКассовуюСмену.ДатаСменыККТ  = тСтрока.time_beg;
-		 СсылкаНаКассовуюСмену.НомерСменыККТ = тСтрока.shiftnum;
-		 СсылкаНаКассовуюСмену.НачалоКассовойСмены = тСтрока.time_beg;
-		 СсылкаНаКассовуюСмену.Статус = СтатасКассовойСмены;
-		// СсылкаНаКассовуюСмену.Статус = Перечисления.СтатусыКассовойСмены.Закрыта;
-		 
-		 СсылкаНаКассовуюСмену.ФискальноеУстройство = Справочники.ПодключаемоеОборудование.НайтиПоНаименованию("'ШТРИХ-М:ККТ с передачей данных в ОФД (ФФД 1.2)' на <<Пользователь>>(gg51-54-cu)");
-
-		 СсылкаНаКассовуюСмену.КоличествоЧеков = тСтрока.countsale + тСтрока.countrefund;
-		 
-		 СсылкаНаКассовуюСмену.ОкончаниеКассовойСмены = тСтрока.time_end;  // Перенести в закрытие смены
-		 
-		 Попытка
-		 СсылкаНаКассовуюСмену.Записать(РежимЗаписиДокумента.Проведение);
-	 Исключение
-		 КонецПопытки;
-		 
-	      МассивДокументовКассоваяСмена.Добавить(СсылкаНаКассовуюСмену);
-		  КонецЕсли;
+			
+			СсылкаНаКассовуюСмену = Документы.КассоваяСмена.СоздатьДокумент();
+			СсылкаНаКассовуюСмену.Дата = тСтрока.time_beg;
+			СсылкаНаКассовуюСмену.ДатаСменыККТ  = тСтрока.time_beg;
+			СсылкаНаКассовуюСмену.НомерСменыККТ = тСтрока.shiftnum;
+			СсылкаНаКассовуюСмену.НачалоКассовойСмены = тСтрока.time_beg;
+			СсылкаНаКассовуюСмену.Статус = СтатасКассовойСмены;
+			// СсылкаНаКассовуюСмену.Статус = Перечисления.СтатусыКассовойСмены.Закрыта;
+			
+			СсылкаНаКассовуюСмену.ФискальноеУстройство = Справочники.ПодключаемоеОборудование.НайтиПоНаименованию("'ШТРИХ-М:ККТ с передачей данных в ОФД (ФФД 1.2)' на <<Пользователь>>(gg51-54-cu)");
+			
+			СсылкаНаКассовуюСмену.КоличествоЧеков = тСтрока.countsale + тСтрока.countrefund;
+			
+			СсылкаНаКассовуюСмену.ОкончаниеКассовойСмены = тСтрока.time_end;  // Перенести в закрытие смены
+			
+			Попытка
+				СсылкаНаКассовуюСмену.Записать(РежимЗаписиДокумента.Проведение);
+			Исключение
+			КонецПопытки;
+			
+			МассивДокументовКассоваяСмена.Добавить(СсылкаНаКассовуюСмену);
+		КонецЕсли;
 	КонецЦикла;  
-	 
+	
 	
 	
 	Возврат СсылкаНаКассовуюСмену;
@@ -232,15 +240,15 @@
 // Проверяет существует ли документ кассовая сманеа по этой кассе за текущее время
 Функция ПроверитьНаличиеКассовойСмены(НомерСмены,Касса,Магазин)
 	
-		
+	
 	Запрос = Новый Запрос;
 	Запрос.Текст = 
-		"ВЫБРАТЬ
-		|	КассоваяСмена.Ссылка КАК Ссылка
-		|ИЗ
-		|	Документ.КассоваяСмена КАК КассоваяСмена
-		|ГДЕ
-		|	КассоваяСмена.НомерСменыККТ = &НомерСменыККТ";
+	"ВЫБРАТЬ
+	|	КассоваяСмена.Ссылка КАК Ссылка
+	|ИЗ
+	|	Документ.КассоваяСмена КАК КассоваяСмена
+	|ГДЕ
+	|	КассоваяСмена.НомерСменыККТ = &НомерСменыККТ";
 	
 	Запрос.УстановитьПараметр("НомерСменыККТ", НомерСмены);
 	
@@ -249,7 +257,7 @@
 	ВыборкаДетальныеЗаписи = РезультатЗапроса.Выбрать();
 	
 	Возврат ВыборкаДетальныеЗаписи.Следующий();	
-
+	
 	
 	
 КонецФункции	
@@ -266,16 +274,16 @@
 	
 	Запрос = Новый Запрос;
 	Запрос.Текст = 
-		"ВЫБРАТЬ ПЕРВЫЕ 1
-		|	КассоваяСмена.Ссылка КАК Ссылка,
-		|	КассоваяСмена.Дата КАК Дата
-		|ИЗ
-		|	Документ.КассоваяСмена КАК КассоваяСмена
-		|ГДЕ
-		|	КассоваяСмена.Статус = &Статус
-		|
-		|УПОРЯДОЧИТЬ ПО
-		|	КассоваяСмена.Дата";
+	"ВЫБРАТЬ ПЕРВЫЕ 1
+	|	КассоваяСмена.Ссылка КАК Ссылка,
+	|	КассоваяСмена.Дата КАК Дата
+	|ИЗ
+	|	Документ.КассоваяСмена КАК КассоваяСмена
+	|ГДЕ
+	|	КассоваяСмена.Статус = &Статус
+	|
+	|УПОРЯДОЧИТЬ ПО
+	|	КассоваяСмена.Дата";
 	
 	Запрос.УстановитьПараметр("Статус", Статус);
 	
@@ -288,9 +296,9 @@
 	КонецЕсли;;
 	
 	Возврат РезультатДата;
-
+	
 КонецФункции // ПолучитьДатуПервойНеЗакрытойСмены()
- 
+
 
 // Возвращает список содержащий ссылки на все незакрытые кассовые смены в 1С
 // Предпологается, что данные по закрытым сменам не изменны и не рубуют корректировки
@@ -306,15 +314,15 @@
 	
 	Запрос = Новый Запрос;
 	Запрос.Текст = 
-		"ВЫБРАТЬ
-		|	КассоваяСмена.НомерСменыККТ КАК НомерСменыККТ
-		|ИЗ
-		|	Документ.КассоваяСмена КАК КассоваяСмена
-		|ГДЕ
-		|	КассоваяСмена.Статус = &Статус
-		|
-		|УПОРЯДОЧИТЬ ПО
-		|	КассоваяСмена.Дата";
+	"ВЫБРАТЬ
+	|	КассоваяСмена.НомерСменыККТ КАК НомерСменыККТ
+	|ИЗ
+	|	Документ.КассоваяСмена КАК КассоваяСмена
+	|ГДЕ
+	|	КассоваяСмена.Статус = &Статус
+	|
+	|УПОРЯДОЧИТЬ ПО
+	|	КассоваяСмена.Дата";
 	
 	Запрос.УстановитьПараметр("Статус", Статус);
 	
@@ -323,46 +331,49 @@
 	СписокКассовыхСмен.ЗагрузитьЗначения(РезультатЗапроса.ВыгрузитьКолонку("НомерСменыККТ"));
 	
 	Возврат СписокКассовыхСмен;
-
+	
 КонецФункции // ПолучитьСписокНеЗакрытыхКассовыхСменВ1С()
- 
+
 
 // В функции происходит попытка закрытия кассовой смены, если документ не найден , то возвращается Неопределено
 &НаСервере
 Функция ЗакрытьКассовуюСмену(РезультатКассоваяСмена);
 	
 	Результат = Неопределено;
-
+	
 	ТекущаяКассоваяСмена = Документы.КассоваяСмена.НайтиПоРеквизиту("НомерСменыККТ",РезультатКассоваяСмена[0].shiftnum);
 	
-	      Если НЕ ТекущаяКассоваяСмена = Документы.КассоваяСмена.ПустаяСсылка() Тогда
-		  ОбектТекущаяКассоваяСмена = ТекущаяКассоваяСмена.ПолучитьОбъект();
-		  ОбектТекущаяКассоваяСмена.ОкончаниеКассовойСмены = РезультатКассоваяСмена[0].time_end;
-		  // TODO Разобраться с реквизитами количества чеков
-		  // countrefund	int(11)	Количество чеков возврата
-		  //	countsale	int(11)	Количество чеков продажи
-		  // КоличествоФД   что сюда?
-		  // КоличествоЧеков что сюда?	
-		  ОбектТекущаяКассоваяСмена.КоличествоЧеков = РезультатКассоваяСмена[0].countsale;
-		  ОбектТекущаяКассоваяСмена.Статус = Перечисления.СтатусыКассовойСмены.Закрыта;
-		  Попытка
-		  ОбектТекущаяКассоваяСмена.Записать(РежимЗаписиДокумента.Проведение);
-		  Результат = ТекущаяКассоваяСмена;  
-	  Исключение
-		  
-		  КонецПопытки;
-		  
-		  КонецЕсли; 
-	   Возврат Результат;
-
-   КонецФункции	
+	Если НЕ ТекущаяКассоваяСмена = Документы.КассоваяСмена.ПустаяСсылка() Тогда
+		ОбектТекущаяКассоваяСмена = ТекущаяКассоваяСмена.ПолучитьОбъект();
+		ОбектТекущаяКассоваяСмена.ОкончаниеКассовойСмены = РезультатКассоваяСмена[0].time_end;
+		// TODO Разобраться с реквизитами количества чеков
+		// countrefund	int(11)	Количество чеков возврата
+		//	countsale	int(11)	Количество чеков продажи
+		// КоличествоФД   что сюда?
+		// КоличествоЧеков что сюда?	
+		// TODO заполнять кассу и организацию
+		ОбектТекущаяКассоваяСмена.КоличествоЧеков = РезультатКассоваяСмена[0].countsale;
+		ОбектТекущаяКассоваяСмена.Статус = Перечисления.СтатусыКассовойСмены.Закрыта;
+		Попытка
+			ОбектТекущаяКассоваяСмена.Записать(РежимЗаписиДокумента.Проведение);
+			Результат = ТекущаяКассоваяСмена;  
+		Исключение
+			
+		КонецПопытки;
+		
+	КонецЕсли; 
+	Возврат Результат;
+	
+КонецФункции	
 
 &НаСервере
-   Процедура ЗагрузитьЧекиНаСервере()
-	   // Вставить содержимое обработчика.
-   КонецПроцедуры
+Процедура ЗагрузитьЧекиНаСервере(тНомерСмены)
+	
+	// Получить чеки  по номеру смены
+	
+КонецПроцедуры
 
 &НаКлиенте
-   Процедура ЗагрузитьЧеки(Команда)
-	   ЗагрузитьЧекиНаСервере();
-   КонецПроцедуры
+Процедура ЗагрузитьЧеки(Команда)
+	ЗагрузитьЧекиНаСервере(20);
+КонецПроцедуры
