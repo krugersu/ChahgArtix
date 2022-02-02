@@ -146,6 +146,7 @@
 	// Получаем список всех не закрытых смен в 1С, в норме все смены кроме текущего и прошлого дня должны
 	// быть закрыты
 	СписокНеЗакрытыхКассовыхСмен = ПолучитьСписокНеЗакрытыхКассовыхСменВ1С();
+	СписокИДЧековВСмене = Новый СписокЗначений;
 	
 	// Для каждой не закрытой смены делаем запрос к кассовому серверу и анализируем закрылась ли смена, если
 	// да , то закрываем смену в 1С (возможно в будущем переделать запрос, что бы получать все смены одним запросом
@@ -162,9 +163,12 @@
 			текКассоваяСмена = ЗакрытьКассовуюСмену(РезультатКассоваяСмена);
 			// Попытка создания чеков при закрытии смены
 			// Проверяем если вернулась ссылка на кассовую смену, то начинаем процедуру создания чеков
-			    Если текКассоваяСмена <> Неопределено Тогда
+			Если текКассоваяСмена <> Неопределено Тогда
+					СписокИДЧековВСмене.Очистить();
 					  ТаблицаШапкиЧеков = ЗагрузитьЧекиНаСервере(текКассоваяСмена.НомерСменыККТ);
-				      СоздатьЧеки(ТаблицаШапкиЧеков);
+					  СписокИДЧековВСмене = ТаблицаШапкиЧеков.ВыгрузитьКолонку(""documentid"");
+					  ТаблицаТЧТовары = ЗагрузитьТЧТовары(СписокИДЧековВСмене);
+				      СоздатьЧеки(ТаблицаШапкиЧеков,текКассоваяСмена,ТаблицаТЧТовары,СписокИДЧековВСмене);
 				КонецЕсли; 
 			
 		КонецЕсли; 
@@ -576,8 +580,9 @@
 		|	document.workshiftid = &workshiftid
 		|	И document.cashcode = &cashcode"";
 	
-	Запрос.УстановитьПараметр(""cashcode"", тНомерСмены.cashcode);
-	Запрос.УстановитьПараметр(""workshiftid"", тНомерСмены.shiftnum);
+	// TODO Передавать параметр код кассы в запрос отбора чеков
+	Запрос.УстановитьПараметр(""cashcode"", ""9999"");
+	Запрос.УстановитьПараметр(""workshiftid"", тНомерСмены);
 	
 	РезультатЗапроса = Запрос.Выполнить().Выгрузить();
 	
@@ -601,15 +606,197 @@
 // Возвращаемое значение:
 //   <Тип.Вид>   - <описание возвращаемого значения>
 //
-Функция СоздатьЧеки(ТаблицаШапкиЧеков);
+Функция СоздатьЧеки(ТаблицаШапкиЧеков,текКассоваяСмена,ТаблицаТЧТовары,СписокИДЧековВСмене);
 	
 	//  TODO Добавить проверку на то, что чеки уже существует
 	
-	НовыйЧек = Документы.ЧекККМ.СоздатьДокумент();
 	
+ //Построитель = Новый ПостроительЗапроса;
+ //Построитель.ИсточникДанных = Новый ОписаниеИсточникаДанных(ТаблицаТЧТовары);
+ //
+ //  
+ //тОтбор = Построитель.Отбор.Добавить(""documentid"");
+ //тОтбор.ВидСравнения = ВидСравнения.Равно;
+ //тОтбор.Значение = НомераДокумента;
+ //тОтбор.Использование = Истина;
+ //
+ //Построитель.Выполнить();
+ //Товары = Построитель.Результат.Выгрузить();
+	
+	Для  Каждого текЧек из ТаблицаШапкиЧеков  Цикл
+	    Если НЕ текЧек.doctype = 13 Тогда
+		
+			
+		
+		 
+	НовыйЧек = Документы.ЧекККМ.СоздатьДокумент();
+	НовыйЧек.Валюта = Справочники.Валюты.НайтиПоКоду(""643"");
+	НовыйЧек.Дата = текЧек.time_beg;
+	НовыйЧек.КассоваяСмена = текКассоваяСмена;
+	НовыйЧек.Комментарий = ""Сформирован обработкой загрузки из Artix - "" + ТекущаяДата(); 
+	НовыйЧек.Номер = текЧек.checknum;
+	НовыйЧек.Статус = Перечисления.СтатусыЧековККМ.Пробит;
+	НовыйЧек.СуммаДокумента = текЧек.sumb;
+	
+	Отбор = Новый Структура();
+	Отбор.Вставить(""documentid"",текЧек.documentid);
+	
+	Товары = ТаблицаТЧТовары.НайтиСтроки(Отбор);
+	
+	Для каждого тСтрока Из Товары Цикл
+	
+		нСтрока = НовыйЧек.Товары.Добавить();
+	    нСтрока.Номенклатура = Справочники.Номенклатура.НайтиПоКоду(тСтрока.code);
+		нСтрока.Количество = тСтрока.bquant;
+		нСтрока.Цена = тСтрока.price;
+		
+	КонецЦикла; 
+	
+	Попытка
+	
+		НовыйЧек.Записать(РежимЗаписиДокумента.Проведение);
+	
+	Исключение
+	    Инфо = ИнформацияОбОшибке();
+    Сообщить(НСтр(""ru='Описание=';en='Description='"") + Инфо.Описание + ""'"");
+    Сообщить(НСтр(""ru='ИмяМодуля=';en='ModuleName='"") + Инфо.ИмяМодуля + ""'"");
+    Сообщить(НСтр(""ru='НомерСтроки=';en='LineNumber='"") + Инфо.НомерСтроки + ""'"");
+    Сообщить(НСтр(""ru='ИсходнаяСтрока=';en='SourceLine='"") + Инфо.ИсходнаяСтрока + ""'"");
+	КонецПопытки;
+	// TODO Уточнить про параметр ЦенаВключаетНДС
+	//НовыйЧек.ЦенаВключаетНДС = Истина?
+		КонецЕсли;
+	
+	КонецЦикла; 
+	
+	
+	 
 
 КонецФункции //СоздатьЧеки(ТаблицаШапкиЧеков)
- ",
+ 
+
+
+
+// <Описание функции>
+//
+// Параметры:
+//  <Параметр1>  - <Тип.Вид> - <описание параметра>
+//                 <продолжение описания параметра>
+//  <Параметр2>  - <Тип.Вид> - <описание параметра>
+//                 <продолжение описания параметра>
+//
+// Возвращаемое значение:
+//   <Тип.Вид>   - <описание возвращаемого значения>
+//
+Функция ПолучитьТЧТоварыЧнкаККМ()
+
+	
+
+КонецФункции // ПолучитьТЧТоварыЧнкаККМ()
+ 
+
+Функция  ЗагрузитьТЧТовары(СписокИДЧековВСмене);
+
+	
+	Запрос = Новый Запрос;
+	Запрос.Текст = 
+		""ВЫБРАТЬ
+		|	goodsitem.goodsitemid КАК goodsitemid,
+		|	goodsitem.cashcode КАК cashcode,
+		|	goodsitem.documentid КАК documentid,
+		|	goodsitem.deptcode КАК deptcode,
+		|	goodsitem.scode КАК scode,
+		|	goodsitem.ttime КАК ttime,
+		|	goodsitem.opcode КАК opcode,
+		|	goodsitem.status КАК status,
+		|	goodsitem.bcode КАК bcode,
+		|	goodsitem.name КАК name,
+		|	goodsitem.articul КАК articul,
+		|	goodsitem.measure КАК measure,
+		|	goodsitem.bcode_mode КАК bcode_mode,
+		|	goodsitem.bcode_main КАК bcode_main,
+		|	goodsitem.bquant КАК bquant,
+		|	goodsitem.bquant_mode КАК bquant_mode,
+		|	goodsitem.ost_modif КАК ost_modif,
+		|	goodsitem.cquant КАК cquant,
+		|	goodsitem.pricetype КАК pricetype,
+		|	goodsitem.pricevcode КАК pricevcode,
+		|	goodsitem.price КАК price,
+		|	goodsitem.minprice КАК minprice,
+		|	goodsitem.pricei КАК pricei,
+		|	goodsitem.price_mode КАК price_mode,
+		|	goodsitem.tindex КАК tindex,
+		|	goodsitem.disc_perc КАК disc_perc,
+		|	goodsitem.disc_abs КАК disc_abs,
+		|	goodsitem.sumi КАК sumi,
+		|	goodsitem.sumb КАК sumb,
+		|	goodsitem.sumn КАК sumn,
+		|	goodsitem.sume КАК sume,
+		|	goodsitem.vatcode1 КАК vatcode1,
+		|	goodsitem.vatrate1 КАК vatrate1,
+		|	goodsitem.vatsum1 КАК vatsum1,
+		|	goodsitem.vatcode2 КАК vatcode2,
+		|	goodsitem.vatrate2 КАК vatrate2,
+		|	goodsitem.vatsum2 КАК vatsum2,
+		|	goodsitem.vatcode3 КАК vatcode3,
+		|	goodsitem.vatrate3 КАК vatrate3,
+		|	goodsitem.vatsum3 КАК vatsum3,
+		|	goodsitem.vatcode4 КАК vatcode4,
+		|	goodsitem.vatrate4 КАК vatrate4,
+		|	goodsitem.vatsum4 КАК vatsum4,
+		|	goodsitem.vatcode5 КАК vatcode5,
+		|	goodsitem.vatrate5 КАК vatrate5,
+		|	goodsitem.vatsum5 КАК vatsum5,
+		|	goodsitem.docnum КАК docnum,
+		|	goodsitem.c_link КАК c_link,
+		|	goodsitem.code КАК code,
+		|	goodsitem.posnum КАК posnum,
+		|	goodsitem.frnum КАК frnum,
+		|	goodsitem.extendetoptions КАК extendetoptions,
+		|	goodsitem.opid КАК opid,
+		|	goodsitem.buttonid КАК buttonid,
+		|	goodsitem.paymentitemid КАК paymentitemid,
+		|	goodsitem.departmentid КАК departmentid,
+		|	goodsitem.taramode КАК taramode,
+		|	goodsitem.taracapacity КАК taracapacity,
+		|	goodsitem.extdocid КАК extdocid,
+		|	goodsitem.additionaldata КАК additionaldata,
+		|	goodsitem.reverseoperation КАК reverseoperation,
+		|	goodsitem.update_time КАК update_time,
+		|	goodsitem.aspectschemecode КАК aspectschemecode,
+		|	goodsitem.aspectvaluesetcode КАК aspectvaluesetcode,
+		|	goodsitem.excisemark КАК excisemark,
+		|	goodsitem.inn КАК inn,
+		|	goodsitem.kpp КАК kpp,
+		|	goodsitem.alcoholpercent КАК alcoholpercent,
+		|	goodsitem.tags КАК tags,
+		|	goodsitem.consultantid КАК consultantid,
+		|	goodsitem.alctypecode КАК alctypecode,
+		|	goodsitem.alcocode КАК alcocode,
+		|	goodsitem.additionalexcisemark КАК additionalexcisemark,
+		|	goodsitem.packingprice КАК packingprice,
+		|	goodsitem.additionalbarcode КАК additionalbarcode,
+		|	goodsitem.paymentobject КАК paymentobject,
+		|	goodsitem.paymentmethod КАК paymentmethod,
+		|	goodsitem.minretailprice КАК minretailprice,
+		|	goodsitem.customsdeclarationnumber КАК customsdeclarationnumber,
+		|	goodsitem.manufacturercountrycode КАК manufacturercountrycode,
+		|	goodsitem.pricedoctype КАК pricedoctype,
+		|	goodsitem.excisetype КАК excisetype,
+		|	goodsitem.prepackaged КАК prepackaged,
+		|	goodsitem.ntin КАК ntin
+		|ИЗ
+		|	ВнешнийИсточникДанных.КассовыйСервер.Таблица.goodsitem КАК goodsitem
+		|ГДЕ
+		|	goodsitem.documentid В(&documentid)"";
+	
+	Запрос.УстановитьПараметр(""documentid"", СписокИДЧековВСмене);
+	
+	РезультатЗапроса = Запрос.Выполнить().Выгрузить();
+	
+	Возврат РезультатЗапроса;
+	
+КонецФункции	",
 {4,1,
 {9,
 {1},0,"Объект",
