@@ -141,6 +141,8 @@
 &НаСервере
 Процедура ЗагрузитьКассовыеСменыНаСервере()
 	
+	НеФормироватьЧеки = Истина;
+	
 	//1. В начале отрабатываем изменения по текущим сменам, который уже есть в 1С
 	
 	// Получаем список всех не закрытых смен в 1С, в норме все смены кроме текущего и прошлого дня должны
@@ -164,12 +166,19 @@
 			// Попытка создания чеков при закрытии смены
 			// Проверяем если вернулась ссылка на кассовую смену, то начинаем процедуру создания чеков
 			Если текКассоваяСмена <> Неопределено Тогда
+				// Формируем сразу ОРП чеки не загружаем
+				Если  НеФормироватьЧеки Тогда
+					
+					
+					
+				Иначе // Загружаем чеки и потом на их основе формируем ОРП 
 					СписокИДЧековВСмене.Очистить();
-					  ТаблицаШапкиЧеков = ЗагрузитьЧекиНаСервере(текКассоваяСмена.НомерСменыККТ);
-					  СписокИДЧековВСмене = ТаблицаШапкиЧеков.ВыгрузитьКолонку(""documentid"");
-					  ТаблицаТЧТовары = ЗагрузитьТЧТовары(СписокИДЧековВСмене);
-				      СоздатьЧеки(ТаблицаШапкиЧеков,текКассоваяСмена,ТаблицаТЧТовары,СписокИДЧековВСмене);
+					ТаблицаШапкиЧеков = ЗагрузитьЧекиНаСервере(текКассоваяСмена.НомерСменыККТ);
+					СписокИДЧековВСмене = ТаблицаШапкиЧеков.ВыгрузитьКолонку(""documentid"");
+					ТаблицаТЧТовары = ЗагрузитьТЧТовары(СписокИДЧековВСмене);
+					СоздатьЧеки(ТаблицаШапкиЧеков,текКассоваяСмена,ТаблицаТЧТовары,СписокИДЧековВСмене);
 				КонецЕсли; 
+			КонецЕсли; 
 			
 		КонецЕсли; 
 		
@@ -513,72 +522,72 @@
 	
 	// Получить чеки  по номеру смены и коду кассы
 	
-		
+	
 	Запрос = Новый Запрос;
 	Запрос.Текст = 
-		""ВЫБРАТЬ
-		|	document.documentid КАК documentid,
-		|	document.cashcode КАК cashcode,
-		|	document.workshiftid КАК workshiftid,
-		|	document.checknum КАК checknum,
-		|	document.doctype КАК doctype,
-		|	document.dept КАК dept,
-		|	document.scode КАК scode,
-		|	document.time_beg КАК time_beg,
-		|	document.time_end КАК time_end,
-		|	document.vbrate КАК vbrate,
-		|	document.verate КАК verate,
-		|	document.sum1 КАК sum1,
-		|	document.sum2 КАК sum2,
-		|	document.sum2m КАК sum2m,
-		|	document.summode КАК summode,
-		|	document.sumtype КАК sumtype,
-		|	document.disc_perc КАК disc_perc,
-		|	document.disc_abs КАК disc_abs,
-		|	document.sumb КАК sumb,
-		|	document.sumn КАК sumn,
-		|	document.sume КАК sume,
-		|	document.vatsum КАК vatsum,
-		|	document.docnum КАК docnum,
-		|	document.c_link КАК c_link,
-		|	document.closed КАК closed,
-		|	document.opid КАК opid,
-		|	document.dateincrement КАК dateincrement,
-		|	document.buttonid КАК buttonid,
-		|	document.linkeddocumentid КАК linkeddocumentid,
-		|	document.departmentid КАК departmentid,
-		|	document.clientitemid КАК clientitemid,
-		|	document.changed КАК changed,
-		|	document.rtext КАК rtext,
-		|	document.sumcash КАК sumcash,
-		|	document.identifier КАК identifier,
-		|	document.url_egais КАК url_egais,
-		|	document.digital_signature_egais КАК digital_signature_egais,
-		|	document.update_time КАК update_time,
-		|	document.actorcode КАК actorcode,
-		|	document.moneyouttype КАК moneyouttype,
-		|	document.nopdfUrlEgais КАК nopdfUrlEgais,
-		|	document.nopdfDigitalSignatureEgais КАК nopdfDigitalSignatureEgais,
-		|	document.customeraddress КАК customeraddress,
-		|	document.closewithoutprint КАК closewithoutprint,
-		|	document.sourceidentifier КАК sourceidentifier,
-		|	document.frdocnum КАК frdocnum,
-		|	document.frdoccopy КАК frdoccopy,
-		|	document.backreason КАК backreason,
-		|	document.fiscalidentifier КАК fiscalidentifier,
-		|	document.correctionsourcedocnum КАК correctionsourcedocnum,
-		|	document.correctionsourcedocdate КАК correctionsourcedocdate,
-		|	document.correctionreason КАК correctionreason,
-		|	document.correctiontype КАК correctiontype,
-		|	document.waybillprinted КАК waybillprinted,
-		|	document.waybillnumber КАК waybillnumber,
-		|	document.sumnoncash КАК sumnoncash,
-		|	document.sumother КАК sumother
-		|ИЗ
-		|	ВнешнийИсточникДанных.КассовыйСервер.Таблица.document КАК document
-		|ГДЕ
-		|	document.workshiftid = &workshiftid
-		|	И document.cashcode = &cashcode"";
+	""ВЫБРАТЬ
+	|	document.documentid КАК documentid,
+	|	document.cashcode КАК cashcode,
+	|	document.workshiftid КАК workshiftid,
+	|	document.checknum КАК checknum,
+	|	document.doctype КАК doctype,
+	|	document.dept КАК dept,
+	|	document.scode КАК scode,
+	|	document.time_beg КАК time_beg,
+	|	document.time_end КАК time_end,
+	|	document.vbrate КАК vbrate,
+	|	document.verate КАК verate,
+	|	document.sum1 КАК sum1,
+	|	document.sum2 КАК sum2,
+	|	document.sum2m КАК sum2m,
+	|	document.summode КАК summode,
+	|	document.sumtype КАК sumtype,
+	|	document.disc_perc КАК disc_perc,
+	|	document.disc_abs КАК disc_abs,
+	|	document.sumb КАК sumb,
+	|	document.sumn КАК sumn,
+	|	document.sume КАК sume,
+	|	document.vatsum КАК vatsum,
+	|	document.docnum КАК docnum,
+	|	document.c_link КАК c_link,
+	|	document.closed КАК closed,
+	|	document.opid КАК opid,
+	|	document.dateincrement КАК dateincrement,
+	|	document.buttonid КАК buttonid,
+	|	document.linkeddocumentid КАК linkeddocumentid,
+	|	document.departmentid КАК departmentid,
+	|	document.clientitemid КАК clientitemid,
+	|	document.changed КАК changed,
+	|	document.rtext КАК rtext,
+	|	document.sumcash КАК sumcash,
+	|	document.identifier КАК identifier,
+	|	document.url_egais КАК url_egais,
+	|	document.digital_signature_egais КАК digital_signature_egais,
+	|	document.update_time КАК update_time,
+	|	document.actorcode КАК actorcode,
+	|	document.moneyouttype КАК moneyouttype,
+	|	document.nopdfUrlEgais КАК nopdfUrlEgais,
+	|	document.nopdfDigitalSignatureEgais КАК nopdfDigitalSignatureEgais,
+	|	document.customeraddress КАК customeraddress,
+	|	document.closewithoutprint КАК closewithoutprint,
+	|	document.sourceidentifier КАК sourceidentifier,
+	|	document.frdocnum КАК frdocnum,
+	|	document.frdoccopy КАК frdoccopy,
+	|	document.backreason КАК backreason,
+	|	document.fiscalidentifier КАК fiscalidentifier,
+	|	document.correctionsourcedocnum КАК correctionsourcedocnum,
+	|	document.correctionsourcedocdate КАК correctionsourcedocdate,
+	|	document.correctionreason КАК correctionreason,
+	|	document.correctiontype КАК correctiontype,
+	|	document.waybillprinted КАК waybillprinted,
+	|	document.waybillnumber КАК waybillnumber,
+	|	document.sumnoncash КАК sumnoncash,
+	|	document.sumother КАК sumother
+	|ИЗ
+	|	ВнешнийИсточникДанных.КассовыйСервер.Таблица.document КАК document
+	|ГДЕ
+	|	document.workshiftid = &workshiftid
+	|	И document.cashcode = &cashcode"";
 	
 	// TODO Передавать параметр код кассы в запрос отбора чеков
 	Запрос.УстановитьПараметр(""cashcode"", ""9999"");
@@ -611,69 +620,87 @@
 	//  TODO Добавить проверку на то, что чеки уже существует
 	
 	
- //Построитель = Новый ПостроительЗапроса;
- //Построитель.ИсточникДанных = Новый ОписаниеИсточникаДанных(ТаблицаТЧТовары);
- //
- //  
- //тОтбор = Построитель.Отбор.Добавить(""documentid"");
- //тОтбор.ВидСравнения = ВидСравнения.Равно;
- //тОтбор.Значение = НомераДокумента;
- //тОтбор.Использование = Истина;
- //
- //Построитель.Выполнить();
- //Товары = Построитель.Результат.Выгрузить();
+	//Построитель = Новый ПостроительЗапроса;
+	//Построитель.ИсточникДанных = Новый ОписаниеИсточникаДанных(ТаблицаТЧТовары);
+	//
+	//  
+	//тОтбор = Построитель.Отбор.Добавить(""documentid"");
+	//тОтбор.ВидСравнения = ВидСравнения.Равно;
+	//тОтбор.Значение = НомераДокумента;
+	//тОтбор.Использование = Истина;
+	//
+	//Построитель.Выполнить();
+	//Товары = Построитель.Результат.Выгрузить();
 	
 	Для  Каждого текЧек из ТаблицаШапкиЧеков  Цикл
-	    Если НЕ текЧек.doctype = 13 Тогда
-		
+		Если НЕ текЧек.doctype = 13 Тогда
 			
-		
-		 
-	НовыйЧек = Документы.ЧекККМ.СоздатьДокумент();
-	НовыйЧек.Валюта = Справочники.Валюты.НайтиПоКоду(""643"");
-	НовыйЧек.Дата = текЧек.time_beg;
-	НовыйЧек.КассоваяСмена = текКассоваяСмена;
-	НовыйЧек.Комментарий = ""Сформирован обработкой загрузки из Artix - "" + ТекущаяДата(); 
-	НовыйЧек.Номер = текЧек.checknum;
-	НовыйЧек.Статус = Перечисления.СтатусыЧековККМ.Пробит;
-	НовыйЧек.СуммаДокумента = текЧек.sumb;
-	
-	Отбор = Новый Структура();
-	Отбор.Вставить(""documentid"",текЧек.documentid);
-	
-	Товары = ТаблицаТЧТовары.НайтиСтроки(Отбор);
-	
-	Для каждого тСтрока Из Товары Цикл
-	
-		нСтрока = НовыйЧек.Товары.Добавить();
-	    нСтрока.Номенклатура = Справочники.Номенклатура.НайтиПоКоду(тСтрока.code);
-		нСтрока.Количество = тСтрока.bquant;
-		нСтрока.Цена = тСтрока.price;
-		
-	КонецЦикла; 
-	
-	Попытка
-	
-		НовыйЧек.Записать(РежимЗаписиДокумента.Проведение);
-	
-	Исключение
-	    Инфо = ИнформацияОбОшибке();
-    Сообщить(НСтр(""ru='Описание=';en='Description='"") + Инфо.Описание + ""'"");
-    Сообщить(НСтр(""ru='ИмяМодуля=';en='ModuleName='"") + Инфо.ИмяМодуля + ""'"");
-    Сообщить(НСтр(""ru='НомерСтроки=';en='LineNumber='"") + Инфо.НомерСтроки + ""'"");
-    Сообщить(НСтр(""ru='ИсходнаяСтрока=';en='SourceLine='"") + Инфо.ИсходнаяСтрока + ""'"");
-	КонецПопытки;
-	// TODO Уточнить про параметр ЦенаВключаетНДС
-	//НовыйЧек.ЦенаВключаетНДС = Истина?
+			НовыйЧек = Документы.ЧекККМ.СоздатьДокумент();
+			НовыйЧек.Валюта = Справочники.Валюты.НайтиПоКоду(""643"");
+			НовыйЧек.Дата = текЧек.time_beg;
+			НовыйЧек.КассоваяСмена = текКассоваяСмена;
+			НовыйЧек.Комментарий = ""Сформирован обработкой загрузки из Artix - "" + ТекущаяДата(); 
+			//НовыйЧек.Номер = текЧек.checknum;
+			НовыйЧек.Статус = Перечисления.СтатусыЧековККМ.Пробит;
+			НовыйЧек.СуммаДокумента = текЧек.sumb;
+			// TODO сделать поиск кассККМ
+			НовыйЧек.КассаККМ = Справочники.КассыККМ.НайтиПоНаименованию(""02_№1 (Главная) Гребенщикова 2"");	
+			// TODO Сделать поиск организации при формировании чекаККМ
+			НовыйЧек.Организация = Справочники.Организации.НайтиПоНаименованию(""Индивидуальный предприниматель Скрипникова Ольга Александровна"");
+			// TODO Сделать поиск склада при формировании чекаККМ
+			НовыйЧек.Склад = Справочники.Склады.НайтиПоНаименованию(""13.SKГребенщикова 2"");     
+			// TODO Сделать поиск вида цены при формировании чекаККМ
+			НовыйЧек.ВидЦены = Справочники.ВидыЦен.НайтиПоНаименованию(""13.SKГребенщикова 2"");
+			
+			Отбор = Новый Структура();
+			Отбор.Вставить(""documentid"",текЧек.documentid);
+			
+			Товары = ТаблицаТЧТовары.НайтиСтроки(Отбор);
+			
+			Для каждого тСтрока Из Товары Цикл
+				
+				нСтрока = НовыйЧек.Товары.Добавить();
+				нСтрока.Номенклатура = Справочники.Номенклатура.НайтиПоКоду(тСтрока.code);
+				нСтрока.Количество = тСтрока.bquant;
+				нСтрока.КоличествоУпаковок = тСтрока.bquant;
+				
+				нСтрока.Цена = тСтрока.price;
+				// TODO переделать на вызов стандартной процедуры пересчета строки ТЧ
+				
+				нСтрока.Сумма = нСтрока.Количество * нСтрока.Цена;
+				нСтрока.Продавец = Справочники.Пользователи.НайтиПоНаименованию(""Кассир"");
+				
+				// TODO Ставка НДС в строке чека
+				нСтрока.СтавкаНДС = Справочники.СтавкиНДС.БезНДС;
+				
+			КонецЦикла; 
+			
+			Попытка
+				
+				НовыйЧек.Записать(РежимЗаписиДокумента.Проведение);
+				
+			Исключение
+				НовыйЧек.Записать(РежимЗаписиДокумента.Запись);
+				
+				// TODO Переделать все сообщения об ошибках в записи журнала регистрации
+				
+				Инфо = ИнформацияОбОшибке();
+				Сообщить(НСтр(""ru='Описание=';en='Description='"") + Инфо.Описание + ""'"");
+				Сообщить(НСтр(""ru='ИмяМодуля=';en='ModuleName='"") + Инфо.ИмяМодуля + ""'"");
+				Сообщить(НСтр(""ru='НомерСтроки=';en='LineNumber='"") + Инфо.НомерСтроки + ""'"");
+				Сообщить(НСтр(""ru='ИсходнаяСтрока=';en='SourceLine='"") + Инфо.ИсходнаяСтрока + ""'"");
+			КонецПопытки;
+			// TODO Уточнить про параметр ЦенаВключаетНДС
+			//НовыйЧек.ЦенаВключаетНДС = Истина?
 		КонецЕсли;
-	
+		
 	КонецЦикла; 
 	
 	
-	 
-
+	
+	
 КонецФункции //СоздатьЧеки(ТаблицаШапкиЧеков)
- 
+
 
 
 
@@ -689,106 +716,106 @@
 //   <Тип.Вид>   - <описание возвращаемого значения>
 //
 Функция ПолучитьТЧТоварыЧнкаККМ()
-
 	
-
+	
+	
 КонецФункции // ПолучитьТЧТоварыЧнкаККМ()
- 
+
 
 Функция  ЗагрузитьТЧТовары(СписокИДЧековВСмене);
-
+	
 	
 	Запрос = Новый Запрос;
 	Запрос.Текст = 
-		""ВЫБРАТЬ
-		|	goodsitem.goodsitemid КАК goodsitemid,
-		|	goodsitem.cashcode КАК cashcode,
-		|	goodsitem.documentid КАК documentid,
-		|	goodsitem.deptcode КАК deptcode,
-		|	goodsitem.scode КАК scode,
-		|	goodsitem.ttime КАК ttime,
-		|	goodsitem.opcode КАК opcode,
-		|	goodsitem.status КАК status,
-		|	goodsitem.bcode КАК bcode,
-		|	goodsitem.name КАК name,
-		|	goodsitem.articul КАК articul,
-		|	goodsitem.measure КАК measure,
-		|	goodsitem.bcode_mode КАК bcode_mode,
-		|	goodsitem.bcode_main КАК bcode_main,
-		|	goodsitem.bquant КАК bquant,
-		|	goodsitem.bquant_mode КАК bquant_mode,
-		|	goodsitem.ost_modif КАК ost_modif,
-		|	goodsitem.cquant КАК cquant,
-		|	goodsitem.pricetype КАК pricetype,
-		|	goodsitem.pricevcode КАК pricevcode,
-		|	goodsitem.price КАК price,
-		|	goodsitem.minprice КАК minprice,
-		|	goodsitem.pricei КАК pricei,
-		|	goodsitem.price_mode КАК price_mode,
-		|	goodsitem.tindex КАК tindex,
-		|	goodsitem.disc_perc КАК disc_perc,
-		|	goodsitem.disc_abs КАК disc_abs,
-		|	goodsitem.sumi КАК sumi,
-		|	goodsitem.sumb КАК sumb,
-		|	goodsitem.sumn КАК sumn,
-		|	goodsitem.sume КАК sume,
-		|	goodsitem.vatcode1 КАК vatcode1,
-		|	goodsitem.vatrate1 КАК vatrate1,
-		|	goodsitem.vatsum1 КАК vatsum1,
-		|	goodsitem.vatcode2 КАК vatcode2,
-		|	goodsitem.vatrate2 КАК vatrate2,
-		|	goodsitem.vatsum2 КАК vatsum2,
-		|	goodsitem.vatcode3 КАК vatcode3,
-		|	goodsitem.vatrate3 КАК vatrate3,
-		|	goodsitem.vatsum3 КАК vatsum3,
-		|	goodsitem.vatcode4 КАК vatcode4,
-		|	goodsitem.vatrate4 КАК vatrate4,
-		|	goodsitem.vatsum4 КАК vatsum4,
-		|	goodsitem.vatcode5 КАК vatcode5,
-		|	goodsitem.vatrate5 КАК vatrate5,
-		|	goodsitem.vatsum5 КАК vatsum5,
-		|	goodsitem.docnum КАК docnum,
-		|	goodsitem.c_link КАК c_link,
-		|	goodsitem.code КАК code,
-		|	goodsitem.posnum КАК posnum,
-		|	goodsitem.frnum КАК frnum,
-		|	goodsitem.extendetoptions КАК extendetoptions,
-		|	goodsitem.opid КАК opid,
-		|	goodsitem.buttonid КАК buttonid,
-		|	goodsitem.paymentitemid КАК paymentitemid,
-		|	goodsitem.departmentid КАК departmentid,
-		|	goodsitem.taramode КАК taramode,
-		|	goodsitem.taracapacity КАК taracapacity,
-		|	goodsitem.extdocid КАК extdocid,
-		|	goodsitem.additionaldata КАК additionaldata,
-		|	goodsitem.reverseoperation КАК reverseoperation,
-		|	goodsitem.update_time КАК update_time,
-		|	goodsitem.aspectschemecode КАК aspectschemecode,
-		|	goodsitem.aspectvaluesetcode КАК aspectvaluesetcode,
-		|	goodsitem.excisemark КАК excisemark,
-		|	goodsitem.inn КАК inn,
-		|	goodsitem.kpp КАК kpp,
-		|	goodsitem.alcoholpercent КАК alcoholpercent,
-		|	goodsitem.tags КАК tags,
-		|	goodsitem.consultantid КАК consultantid,
-		|	goodsitem.alctypecode КАК alctypecode,
-		|	goodsitem.alcocode КАК alcocode,
-		|	goodsitem.additionalexcisemark КАК additionalexcisemark,
-		|	goodsitem.packingprice КАК packingprice,
-		|	goodsitem.additionalbarcode КАК additionalbarcode,
-		|	goodsitem.paymentobject КАК paymentobject,
-		|	goodsitem.paymentmethod КАК paymentmethod,
-		|	goodsitem.minretailprice КАК minretailprice,
-		|	goodsitem.customsdeclarationnumber КАК customsdeclarationnumber,
-		|	goodsitem.manufacturercountrycode КАК manufacturercountrycode,
-		|	goodsitem.pricedoctype КАК pricedoctype,
-		|	goodsitem.excisetype КАК excisetype,
-		|	goodsitem.prepackaged КАК prepackaged,
-		|	goodsitem.ntin КАК ntin
-		|ИЗ
-		|	ВнешнийИсточникДанных.КассовыйСервер.Таблица.goodsitem КАК goodsitem
-		|ГДЕ
-		|	goodsitem.documentid В(&documentid)"";
+	""ВЫБРАТЬ
+	|	goodsitem.goodsitemid КАК goodsitemid,
+	|	goodsitem.cashcode КАК cashcode,
+	|	goodsitem.documentid КАК documentid,
+	|	goodsitem.deptcode КАК deptcode,
+	|	goodsitem.scode КАК scode,
+	|	goodsitem.ttime КАК ttime,
+	|	goodsitem.opcode КАК opcode,
+	|	goodsitem.status КАК status,
+	|	goodsitem.bcode КАК bcode,
+	|	goodsitem.name КАК name,
+	|	goodsitem.articul КАК articul,
+	|	goodsitem.measure КАК measure,
+	|	goodsitem.bcode_mode КАК bcode_mode,
+	|	goodsitem.bcode_main КАК bcode_main,
+	|	goodsitem.bquant КАК bquant,
+	|	goodsitem.bquant_mode КАК bquant_mode,
+	|	goodsitem.ost_modif КАК ost_modif,
+	|	goodsitem.cquant КАК cquant,
+	|	goodsitem.pricetype КАК pricetype,
+	|	goodsitem.pricevcode КАК pricevcode,
+	|	goodsitem.price КАК price,
+	|	goodsitem.minprice КАК minprice,
+	|	goodsitem.pricei КАК pricei,
+	|	goodsitem.price_mode КАК price_mode,
+	|	goodsitem.tindex КАК tindex,
+	|	goodsitem.disc_perc КАК disc_perc,
+	|	goodsitem.disc_abs КАК disc_abs,
+	|	goodsitem.sumi КАК sumi,
+	|	goodsitem.sumb КАК sumb,
+	|	goodsitem.sumn КАК sumn,
+	|	goodsitem.sume КАК sume,
+	|	goodsitem.vatcode1 КАК vatcode1,
+	|	goodsitem.vatrate1 КАК vatrate1,
+	|	goodsitem.vatsum1 КАК vatsum1,
+	|	goodsitem.vatcode2 КАК vatcode2,
+	|	goodsitem.vatrate2 КАК vatrate2,
+	|	goodsitem.vatsum2 КАК vatsum2,
+	|	goodsitem.vatcode3 КАК vatcode3,
+	|	goodsitem.vatrate3 КАК vatrate3,
+	|	goodsitem.vatsum3 КАК vatsum3,
+	|	goodsitem.vatcode4 КАК vatcode4,
+	|	goodsitem.vatrate4 КАК vatrate4,
+	|	goodsitem.vatsum4 КАК vatsum4,
+	|	goodsitem.vatcode5 КАК vatcode5,
+	|	goodsitem.vatrate5 КАК vatrate5,
+	|	goodsitem.vatsum5 КАК vatsum5,
+	|	goodsitem.docnum КАК docnum,
+	|	goodsitem.c_link КАК c_link,
+	|	goodsitem.code КАК code,
+	|	goodsitem.posnum КАК posnum,
+	|	goodsitem.frnum КАК frnum,
+	|	goodsitem.extendetoptions КАК extendetoptions,
+	|	goodsitem.opid КАК opid,
+	|	goodsitem.buttonid КАК buttonid,
+	|	goodsitem.paymentitemid КАК paymentitemid,
+	|	goodsitem.departmentid КАК departmentid,
+	|	goodsitem.taramode КАК taramode,
+	|	goodsitem.taracapacity КАК taracapacity,
+	|	goodsitem.extdocid КАК extdocid,
+	|	goodsitem.additionaldata КАК additionaldata,
+	|	goodsitem.reverseoperation КАК reverseoperation,
+	|	goodsitem.update_time КАК update_time,
+	|	goodsitem.aspectschemecode КАК aspectschemecode,
+	|	goodsitem.aspectvaluesetcode КАК aspectvaluesetcode,
+	|	goodsitem.excisemark КАК excisemark,
+	|	goodsitem.inn КАК inn,
+	|	goodsitem.kpp КАК kpp,
+	|	goodsitem.alcoholpercent КАК alcoholpercent,
+	|	goodsitem.tags КАК tags,
+	|	goodsitem.consultantid КАК consultantid,
+	|	goodsitem.alctypecode КАК alctypecode,
+	|	goodsitem.alcocode КАК alcocode,
+	|	goodsitem.additionalexcisemark КАК additionalexcisemark,
+	|	goodsitem.packingprice КАК packingprice,
+	|	goodsitem.additionalbarcode КАК additionalbarcode,
+	|	goodsitem.paymentobject КАК paymentobject,
+	|	goodsitem.paymentmethod КАК paymentmethod,
+	|	goodsitem.minretailprice КАК minretailprice,
+	|	goodsitem.customsdeclarationnumber КАК customsdeclarationnumber,
+	|	goodsitem.manufacturercountrycode КАК manufacturercountrycode,
+	|	goodsitem.pricedoctype КАК pricedoctype,
+	|	goodsitem.excisetype КАК excisetype,
+	|	goodsitem.prepackaged КАК prepackaged,
+	|	goodsitem.ntin КАК ntin
+	|ИЗ
+	|	ВнешнийИсточникДанных.КассовыйСервер.Таблица.goodsitem КАК goodsitem
+	|ГДЕ
+	|	goodsitem.documentid В(&documentid)"";
 	
 	Запрос.УстановитьПараметр(""documentid"", СписокИДЧековВСмене);
 	
