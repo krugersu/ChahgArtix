@@ -201,7 +201,7 @@
 	ВидНоменклатуры.Добавить( Справочники.ВидыНоменклатуры.НайтиПоНаименованию("Товар"));
 	//ВидНоменклатуры.Добавить( Справочники.ВидыНоменклатуры.НайтиПоНаименованию("Фасовка"));
 	ВидНоменклатуры.Добавить( Справочники.ВидыНоменклатуры.НайтиПоНаименованию("Табак"));
-	ВидЦены = Справочники.ВидыЦен.НайтиПоНаименованию("08. Петухова 156, Новосибирск");
+	ВидЦены = Справочники.ВидыЦен.НайтиПоНаименованию("13. Гребенщикова 2");
 	
 	
 	
@@ -248,7 +248,7 @@
 	|		КОГДА Номенклатура.ВидНоменклатуры.Наименование = ""Фасовка""
 	|			ТОГДА 1
 	|		КОГДА Номенклатура.ВесИспользовать
-	|			ТОГДА 2
+	|			ТОГДА 0
 	|		ИНАЧЕ 0
 	|	КОНЕЦ КАК taramode,
 	|	Номенклатура.Ссылка КАК Ссылка,
@@ -330,12 +330,6 @@
 	тЗнач.Колонки.Добавить("options");
 	тЗнач.Колонки.Добавить("sellrestrictperiods");
 	тЗнач.Колонки.Добавить("taracapacity");
-	
-	            
-	
-	
-	
-	
 		
 		
 	Для каждого тСтрока Из РезультатЗапроса Цикл
@@ -634,9 +628,9 @@
 	СтруктураНоменклатура.Вставить("deptcode","");
 	
 	СтруктураНоменклатура.Вставить("taxgroupcode","");//##
-//	СтруктураНоменклатура.Вставить("remain","");//##          остаток
-//	СтруктураНоменклатура.Вставить("remaindate","");//##      Дата и время остатков
-
+	//	СтруктураНоменклатура.Вставить("remain","");//##          остаток
+	//	СтруктураНоменклатура.Вставить("remaindate","");//##      Дата и время остатков
+	
 	СтруктураНоменклатура.Вставить("measurecode","");
 	СтруктураНоменклатура.Вставить("articul","");
 	СтруктураНоменклатура.Вставить("defaultquantity",1);//## Количество по умолчанию
@@ -645,60 +639,60 @@
 	СтруктураНоменклатура.Вставить("taramode","");
 	СтруктураНоменклатура.Вставить("taracapacity","");
 	
-//	СтруктураНоменклатура.Вставить("aspectschemecode","");//##  Код схемы разреза
-//	СтруктураНоменклатура.Вставить("aspectschemecode",0);//##  Возраст
+	//	СтруктураНоменклатура.Вставить("aspectschemecode","");//##  Код схемы разреза
+	//	СтруктураНоменклатура.Вставить("aspectschemecode",0);//##  Возраст
 	
 	
 	
 	СтруктураНоменклатура.Вставить("alcoholpercent",0.0);
 	СтруктураНоменклатура.Вставить("cquant",1);//## Количество в учетных единицах
-//	СтруктураНоменклатура.Вставить("inn","");//##  ИНН производителя безакцизной алкогольной продукции
-//	СтруктураНоменклатура.Вставить("kpp","");//##  КПП производителя безакцизной алкогольной продукции
+	//	СтруктураНоменклатура.Вставить("inn","");//##  ИНН производителя безакцизной алкогольной продукции
+	//	СтруктураНоменклатура.Вставить("kpp","");//##  КПП производителя безакцизной алкогольной продукции
 	
 	СтруктураНоменклатура.Вставить("alctypecode",0); // ????
 	
-//	СтруктураНоменклатура.Вставить("paymentobject",0);//##  Признак предмета расчета	
-//	СтруктураНоменклатура.Вставить("manufacturercountrycode",0);//##  Код страны производителя товара
-
-//	СтруктураНоменклатура.Вставить("opmode",0);//## Свойства товара
-	СтруктураНоменклатура.Вставить("loyaltymode",0); // Параметры использования воздействий лояльности
-//	СтруктураНоменклатура.Вставить("minretailprice",0);//## Минимальная розничная цена (МРЦ)
+	//	СтруктураНоменклатура.Вставить("paymentobject",0);//##  Признак предмета расчета	
+	//	СтруктураНоменклатура.Вставить("manufacturercountrycode",0);//##  Код страны производителя товара
 	
-		options			  = Новый Структура;
-		
-		inventitemoptions = Новый Структура;
-		inventitemoptions.Вставить("tobacco",""); // Является ли товар табачной продукцией
-		
-		inventitemoptions.Вставить("tobacco",""); // Является ли товар табачной продукцией
-		inventitemoptions.Вставить("disablebackinsale",0); // Запретить возврат товара в чеке продажи
-		inventitemoptions.Вставить("disableinventshow",0); // Не показывать товар в списках
-		inventitemoptions.Вставить("disableinventsale",0); // Запретить продажу товара
-		inventitemoptions.Вставить("disableinventback",0); // Запретить возврат товара
-		inventitemoptions.Вставить("requiredepartmentmanual",0); // Требовать указание отдела вручную
-		inventitemoptions.Вставить("enabledepartmentmanual",1); // Разрешить ввод отдела вручную
-		inventitemoptions.Вставить("enablebarcodemanual",1); // Разрешить ввод штрих-кода вручную
-		inventitemoptions.Вставить("enablebarcodescanner",1); // Разрешить ввод штрих-кода сканером
-		inventitemoptions.Вставить("visualverify",0); // Визуальный контроль товара
-		inventitemoptions.Вставить("ageverify",1); // Контроль возраста покупателя
-		inventitemoptions.Вставить("requiresalerestrict",0); // Проверять ограничения продаж для товара
-		inventitemoptions.Вставить("egaisverify",0); // Проверять алкогольный товар с акцизной маркой в ЕГАИС
-		inventitemoptions.Вставить("prepackaged",0); // Является ли товар расфасованным
-		inventitemoptions.Вставить("nopdfegaisverify",0); // Проверять алкогольный товар без акцизной марки в ЕГАИС
-		inventitemoptions.Вставить("alcoset",0); // Является ли товар алкогольным набором
-		inventitemoptions.Вставить("freesale",0); // Является ли товар товаром по свободной цене
-		inventitemoptions.Вставить("rfidverify",0); // Является ли товар меховым изделием
-		inventitemoptions.Вставить("lowweight",0); // Является ли товар легким товаром
-		inventitemoptions.Вставить("weightcontrolbypass",0); // Является ли товар товаром без контроля веса
-		inventitemoptions.Вставить("shoes",0); // Является ли товар обувью
-		inventitemoptions.Вставить("ignoremarking",0); // Игнорирование признака маркировки
-		
-			options.Вставить("inventitemoptions",inventitemoptions);
-		priceoptions 	  = Новый Структура;
-			priceoptions.Вставить("enableexcisemarkprice",""); // Использовать цену табачной продукции из кода маркировки	
-		quantityoptions   = Новый Структура;
-		remainsoptions 	  = Новый Структура;
-		
-		
+	//	СтруктураНоменклатура.Вставить("opmode",0);//## Свойства товара
+	СтруктураНоменклатура.Вставить("loyaltymode",0); // Параметры использования воздействий лояльности
+	//	СтруктураНоменклатура.Вставить("minretailprice",0);//## Минимальная розничная цена (МРЦ)
+	
+	options			  = Новый Структура;
+	
+	inventitemoptions = Новый Структура;
+	inventitemoptions.Вставить("tobacco",""); // Является ли товар табачной продукцией
+	
+	inventitemoptions.Вставить("tobacco",""); // Является ли товар табачной продукцией
+	inventitemoptions.Вставить("disablebackinsale",0); // Запретить возврат товара в чеке продажи
+	inventitemoptions.Вставить("disableinventshow",0); // Не показывать товар в списках
+	inventitemoptions.Вставить("disableinventsale",0); // Запретить продажу товара
+	inventitemoptions.Вставить("disableinventback",0); // Запретить возврат товара
+	inventitemoptions.Вставить("requiredepartmentmanual",0); // Требовать указание отдела вручную
+	inventitemoptions.Вставить("enabledepartmentmanual",1); // Разрешить ввод отдела вручную
+	inventitemoptions.Вставить("enablebarcodemanual",1); // Разрешить ввод штрих-кода вручную
+	inventitemoptions.Вставить("enablebarcodescanner",1); // Разрешить ввод штрих-кода сканером
+	inventitemoptions.Вставить("visualverify",0); // Визуальный контроль товара
+	inventitemoptions.Вставить("ageverify",1); // Контроль возраста покупателя
+	inventitemoptions.Вставить("requiresalerestrict",0); // Проверять ограничения продаж для товара
+	inventitemoptions.Вставить("egaisverify",0); // Проверять алкогольный товар с акцизной маркой в ЕГАИС
+	inventitemoptions.Вставить("prepackaged",0); // Является ли товар расфасованным
+	inventitemoptions.Вставить("nopdfegaisverify",0); // Проверять алкогольный товар без акцизной марки в ЕГАИС
+	inventitemoptions.Вставить("alcoset",0); // Является ли товар алкогольным набором
+	inventitemoptions.Вставить("freesale",0); // Является ли товар товаром по свободной цене
+	inventitemoptions.Вставить("rfidverify",0); // Является ли товар меховым изделием
+	inventitemoptions.Вставить("lowweight",0); // Является ли товар легким товаром
+	inventitemoptions.Вставить("weightcontrolbypass",0); // Является ли товар товаром без контроля веса
+	inventitemoptions.Вставить("shoes",0); // Является ли товар обувью
+	inventitemoptions.Вставить("ignoremarking",0); // Игнорирование признака маркировки
+	
+	options.Вставить("inventitemoptions",inventitemoptions);
+	priceoptions 	  = Новый Структура;
+	priceoptions.Вставить("enableexcisemarkprice",""); // Использовать цену табачной продукции из кода маркировки	
+	quantityoptions   = Новый Структура;
+	remainsoptions 	  = Новый Структура;
+	
+	
 	
 	
 	
@@ -1011,12 +1005,12 @@
 	КонецЕсли;	
 	
 	Данные = "";
-	 priceoptions = Сформироватьpriceoptions(тСтрока,0,Данные);
-	 options.Вставить("priceoptions",priceoptions);
-	 
-	 quantityoptions = Сформироватьquantityoptions(тСтрока,0,Данные); 
-	  options.Вставить("quantityoptions",quantityoptions);
-
+	priceoptions = Сформироватьpriceoptions(тСтрока,0,Данные);
+	options.Вставить("priceoptions",priceoptions);
+	
+	quantityoptions = Сформироватьquantityoptions(тСтрока,0,Данные); 
+	options.Вставить("quantityoptions",quantityoptions);
+	
 	Возврат options;
 	
 КонецФункции // ()
@@ -1060,11 +1054,11 @@
 	Если Не Заполнить = 0 Тогда
 		
 		
-		priceoptions.Вставить("enablepricemanual",1);
+		priceoptions.Вставить("enablepricemanual",0);   // Разрешить ввод цены вручную  
 		priceoptions.Вставить("requirepricemanual",0);
 		priceoptions.Вставить("requireselectprice",0);
 		priceoptions.Вставить("requiredeferredprice",0);
-		priceoptions.Вставить("enableexcisemarkprice",0); 				
+		priceoptions.Вставить("enableexcisemarkprice",1); // Использовать цену табачной продукции из кода маркировки				
 		
 	КонецЕсли; 
  
