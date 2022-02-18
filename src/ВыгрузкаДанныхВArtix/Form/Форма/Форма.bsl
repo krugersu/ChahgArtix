@@ -1005,7 +1005,7 @@
 	КонецЕсли;	
 	
 	Данные = "";
-	priceoptions = Сформироватьpriceoptions(тСтрока,0,Данные);
+	priceoptions = Сформироватьpriceoptions(тСтрока,1,Данные);
 	options.Вставить("priceoptions",priceoptions);
 	
 	quantityoptions = Сформироватьquantityoptions(тСтрока,0,Данные); 
@@ -1054,11 +1054,11 @@
 	Если Не Заполнить = 0 Тогда
 		
 		
-		priceoptions.Вставить("enablepricemanual",0);   // Разрешить ввод цены вручную  
+		priceoptions.Вставить("enablepricemanual",Число(Объект.РазрешеноИзменеятьЦеныВручную));   // Разрешить ввод цены вручную  
 		priceoptions.Вставить("requirepricemanual",0);
 		priceoptions.Вставить("requireselectprice",0);
 		priceoptions.Вставить("requiredeferredprice",0);
-		priceoptions.Вставить("enableexcisemarkprice",1); // Использовать цену табачной продукции из кода маркировки				
+		priceoptions.Вставить("enableexcisemarkprice",Число(Объект.ИспользоватьЦенуТабакаИзККода)); // Использовать цену табачной продукции из кода маркировки				
 		
 	КонецЕсли; 
  
