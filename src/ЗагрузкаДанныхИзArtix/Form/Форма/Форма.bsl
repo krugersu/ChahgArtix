@@ -1061,13 +1061,18 @@
 	// Список ИД документов возврата
 	СписокНомеровДокументов.ЗагрузитьЗначения(СписокТоваров.ВыгрузитьКолонку("documentid"));
 	// Вернуть документы по текущей смене
-	
+	СписокДокументовВозвратаПоТекущейСмене = ПолучитьСписокДокументовВозвратаПоТекущейСмене(СписокНомеровДокументов,ИДТекущейКассовойСмены,КодВозврата,КодКассы,Истина);
 	// Вернуть документы по прошлым сменам
-	
+	СписокДокументовВозвратаНеПоТекущейСмене = ПолучитьСписокДокументовВозвратаПоТекущейСмене(СписокНомеровДокументов,ИДТекущейКассовойСмены,КодВозврата,КодКассы,Ложь);
+
 	// Обработать ТЗ с тр=оварами и убрать строки с алкоголем не из текущей смены
+	ТаблицаВозвратаПоТекущейСмене = ПолучитьТоварыДляВозврата(КодВозврата,СписокДокументовВозвратаПоТекущейСмене,Истина);	
+	
+	ТаблицаВозвратаВозвратаНеПоТекущейСмене = ПолучитьТоварыДляВозврата(КодВозврата,СписокДокументовВозвратаПоТекущейСмене,Ложь);
+	
+	 ДополнитьТаблицу(ТаблицаВозвратаПоТекущейСмене,ТаблицаВозвратаВозвратаНеПоТекущейСмене);	
 		
-		
-	Возврат РезультатЗапроса;
+	Возврат ТаблицаВозвратаВозвратаНеПоТекущейСмене;
 	
 КонецФункции	
 
@@ -1104,13 +1109,14 @@
 	
 	ВыборкаДетальныеЗаписи = РезультатЗапроса.Выбрать();
 	
+	
 	Если НЕ ВыборкаДетальныеЗаписи.Количество() = 0  Тогда
-		
-		Результат = ВыборкаДетальныеЗаписи.workshiftid;
+		ВыборкаДетальныеЗаписи.Следующий();	
+		Результат = Число(ВыборкаДетальныеЗаписи.workshiftid) - 1;
 		
 	КонецЕсли; 
 	
-	Возврат Результат;
+	Возврат Строка(Результат);
 	
 КонецФункции //  ПолучитьИДТекущейСмены(КодКассы)()
 
@@ -1150,19 +1156,191 @@
 	Запрос.УстановитьПараметр("documentid", СписокИДЧековВСмене);
 	Запрос.УстановитьПараметр("opcode", КодВозврата);
 	
-	РезультатЗапроса = Запрос.Выполнить();
+	РезультатЗапроса = Запрос.Выполнить().Выгрузить();
 	
-	ВыборкаДетальныеЗаписи = РезультатЗапроса.Выбрать();
 	
-	Пока ВыборкаДетальныеЗаписи.Следующий() Цикл
-		// Вставить обработку выборки ВыборкаДетальныеЗаписи
-	КонецЦикла;
+	Возврат РезультатЗапроса;
 	
 
 
 
 КонецФункции // ПолучитьСписокТоваров(СписокИДЧековВСмене,КодВозврата)()
  
+
+// <Описание функции>
+//
+// Параметры:
+//  <Параметр1>  - <Тип.Вид> - <описание параметра>
+//                 <продолжение описания параметра>
+//  <Параметр2>  - <Тип.Вид> - <описание параметра>
+//                 <продолжение описания параметра>
+//
+// Возвращаемое значение:
+//   <Тип.Вид>   - <описание возвращаемого значения>
+//
+Функция ПолучитьСписокДокументовВозвратаПоТекущейСмене(СписокНомеровДокументов,ИДТекущейКассовойСмены,КодВозврата,КодКассы,ТекущаяСмена)
+	
+	Входит = ?(ТекущаяСмена,"","НЕ");
+	КодВозврата = 25;
+	
+	Запрос = Новый Запрос;
+	Запрос.Текст =  СтрШаблон( 
+	"ВЫБРАТЬ
+	|	document.documentid КАК documentid
+	|ИЗ
+	|	ВнешнийИсточникДанных.КассовыйСервер.Таблица.document КАК document
+	|ГДЕ
+	|	document.documentid В(&documentid)
+	|	И %1 document.workshiftid = &workshiftid
+	|	И document.doctype = &doctype
+	|	И document.cashcode = &cashcode",Входит);
+
+	
+	Запрос.УстановитьПараметр("cashcode", КодКассы);
+	Запрос.УстановитьПараметр("doctype", КодВозврата);
+	Запрос.УстановитьПараметр("documentid", СписокНомеровДокументов);
+	Запрос.УстановитьПараметр("workshiftid", Число(ИДТекущейКассовойСмены));
+	
+	РезультатЗапроса = Запрос.Выполнить();
+	
+	
+	
+	Список = Новый СписокЗначений;
+	Список.ЗагрузитьЗначения(РезультатЗапроса.Выгрузить().ВыгрузитьКолонку("documentid"));
+	Возврат Список;
+	
+	
+	
+	
+КонецФункции // ПолучитьСписокДокументовВозвратаПоТекущейСмене(СписокНомеровДокументов,ИДТекущейКассовойСмены,КодВозврата,КодКассы)()
+
+
+// <Описание функции>
+//
+// Параметры:
+//  <Параметр1>  - <Тип.Вид> - <описание параметра>
+//                 <продолжение описания параметра>
+//  <Параметр2>  - <Тип.Вид> - <описание параметра>
+//                 <продолжение описания параметра>
+//
+// Возвращаемое значение:
+//   <Тип.Вид>   - <описание возвращаемого значения>
+//
+Функция ПолучитьТоварыДляВозврата(КодВозврата,СписокДокументовВозврата,ТекущаяСмена)
+
+	Входит = ?(ТекущаяСмена,">","=");
+	Больше = ?(ТекущаяСмена,">","<=");
+	
+	КодВозврата = 58;
+	
+	Запрос = Новый Запрос;
+	Запрос.Текст = СтрШаблон(
+		"ВЫБРАТЬ
+		|	goodsitem.goodsitemid КАК goodsitemid,
+		|	goodsitem.cashcode КАК cashcode,
+		|	goodsitem.documentid КАК documentid,
+		|	goodsitem.deptcode КАК deptcode,
+		|	goodsitem.scode КАК scode,
+		|	goodsitem.ttime КАК ttime,
+		|	goodsitem.opcode КАК opcode,
+		|	goodsitem.status КАК status,
+		|	goodsitem.bcode КАК bcode,
+		|	goodsitem.name КАК name,
+		|	goodsitem.articul КАК articul,
+		|	goodsitem.measure КАК measure,
+		|	goodsitem.bcode_mode КАК bcode_mode,
+		|	goodsitem.bcode_main КАК bcode_main,
+		|	goodsitem.bquant КАК bquant,
+		|	goodsitem.bquant_mode КАК bquant_mode,
+		|	goodsitem.ost_modif КАК ost_modif,
+		|	goodsitem.cquant КАК cquant,
+		|	goodsitem.pricetype КАК pricetype,
+		|	goodsitem.pricevcode КАК pricevcode,
+		|	goodsitem.price КАК price,
+		|	goodsitem.minprice КАК minprice,
+		|	goodsitem.pricei КАК pricei,
+		|	goodsitem.price_mode КАК price_mode,
+		|	goodsitem.tindex КАК tindex,
+		|	goodsitem.disc_perc КАК disc_perc,
+		|	goodsitem.disc_abs КАК disc_abs,
+		|	goodsitem.sumi КАК sumi,
+		|	goodsitem.sumb КАК sumb,
+		|	goodsitem.sumn КАК sumn,
+		|	goodsitem.sume КАК sume,
+		|	goodsitem.vatcode1 КАК vatcode1,
+		|	goodsitem.vatrate1 КАК vatrate1,
+		|	goodsitem.vatsum1 КАК vatsum1,
+		|	goodsitem.vatcode2 КАК vatcode2,
+		|	goodsitem.vatrate2 КАК vatrate2,
+		|	goodsitem.vatsum2 КАК vatsum2,
+		|	goodsitem.vatcode3 КАК vatcode3,
+		|	goodsitem.vatrate3 КАК vatrate3,
+		|	goodsitem.vatsum3 КАК vatsum3,
+		|	goodsitem.vatcode4 КАК vatcode4,
+		|	goodsitem.vatrate4 КАК vatrate4,
+		|	goodsitem.vatsum4 КАК vatsum4,
+		|	goodsitem.vatcode5 КАК vatcode5,
+		|	goodsitem.vatrate5 КАК vatrate5,
+		|	goodsitem.vatsum5 КАК vatsum5,
+		|	goodsitem.docnum КАК docnum,
+		|	goodsitem.c_link КАК c_link,
+		|	goodsitem.code КАК code,
+		|	goodsitem.posnum КАК posnum,
+		|	goodsitem.frnum КАК frnum,
+		|	goodsitem.extendetoptions КАК extendetoptions,
+		|	goodsitem.opid КАК opid,
+		|	goodsitem.buttonid КАК buttonid,
+		|	goodsitem.paymentitemid КАК paymentitemid,
+		|	goodsitem.departmentid КАК departmentid,
+		|	goodsitem.taramode КАК taramode,
+		|	goodsitem.taracapacity КАК taracapacity,
+		|	goodsitem.extdocid КАК extdocid,
+		|	goodsitem.additionaldata КАК additionaldata,
+		|	goodsitem.reverseoperation КАК reverseoperation,
+		|	goodsitem.update_time КАК update_time,
+		|	goodsitem.aspectschemecode КАК aspectschemecode,
+		|	goodsitem.aspectvaluesetcode КАК aspectvaluesetcode,
+		|	goodsitem.excisemark КАК excisemark,
+		|	goodsitem.inn КАК inn,
+		|	goodsitem.kpp КАК kpp,
+		|	goodsitem.alcoholpercent КАК alcoholpercent,
+		|	goodsitem.tags КАК tags,
+		|	goodsitem.consultantid КАК consultantid,
+		|	goodsitem.alctypecode КАК alctypecode,
+		|	goodsitem.alcocode КАК alcocode,
+		|	goodsitem.additionalexcisemark КАК additionalexcisemark,
+		|	goodsitem.packingprice КАК packingprice,
+		|	goodsitem.additionalbarcode КАК additionalbarcode,
+		|	goodsitem.paymentobject КАК paymentobject,
+		|	goodsitem.paymentmethod КАК paymentmethod,
+		|	goodsitem.minretailprice КАК minretailprice,
+		|	goodsitem.customsdeclarationnumber КАК customsdeclarationnumber,
+		|	goodsitem.manufacturercountrycode КАК manufacturercountrycode,
+		|	goodsitem.pricedoctype КАК pricedoctype,
+		|	goodsitem.excisetype КАК excisetype,
+		|	goodsitem.prepackaged КАК prepackaged,
+		|	goodsitem.ntin КАК ntin
+		|ИЗ
+		|	ВнешнийИсточникДанных.КассовыйСервер.Таблица.goodsitem КАК goodsitem
+		|ГДЕ
+		|	goodsitem.documentid В(&documentid)
+		|	И goodsitem.alctypecode %1 0
+		|	И goodsitem.alcoholpercent %2 0
+		|	И goodsitem.opcode = &opcode",Входит,Больше);
+
+	
+	Запрос.УстановитьПараметр("documentid", СписокДокументовВозврата);
+	Запрос.УстановитьПараметр("opcode", КодВозврата);
+	
+	РезультатЗапроса = Запрос.Выполнить().Выгрузить();
+	
+	Возврат РезультатЗапроса;
+
+	
+
+КонецФункции // ПолучитьТоварыДляВозврата(КодВозврата,СписокДокументовВозвратаПоТекущейСмене,Истина)()
+ 
+
 
 //Формирует ОРП на основании данных продаж
 // Параметры:
@@ -1560,3 +1738,18 @@
 
 
 
+// Дополняет таблицу значений-приемник данными из таблицы значений-источник
+//
+// Параметры:
+// ТаблицаИсточник - Таблица значений - таблица из которой будут браться строки для заполнения
+// ТаблицаПриемник - Таблица значений - таблица в которую будут добавлены строки из таблицы-источника
+//
+Процедура ДополнитьТаблицу(ТаблицаИсточник, ТаблицаПриемник) 
+
+Для Каждого СтрокаТаблицыИсточник Из ТаблицаИсточник Цикл
+
+ЗаполнитьЗначенияСвойств(ТаблицаПриемник.Добавить(), СтрокаТаблицыИсточник);
+
+КонецЦикла;
+
+КонецПроцедуры
