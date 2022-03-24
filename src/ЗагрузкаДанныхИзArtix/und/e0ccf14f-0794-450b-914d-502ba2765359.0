@@ -1304,12 +1304,260 @@
 	ТаблицаВозвратаПоТекущейСмене = ПолучитьТоварыДляВозврата(КодВозврата,СписокДокументовВозвратаПоТекущейСмене,Ложь);	
 	
 	ТаблицаВозвратаВозвратаНеПоТекущейСмене = ПолучитьТоварыДляВозврата(КодВозврата,СписокДокументовВозвратаНеПоТекущейСмене,Истина);
-	
+	ТаблицаВозвратаВозвратаНеПоТекущейСмене = УдалитьЛишниеТоварыВозврата(ТаблицаВозвратаВозвратаНеПоТекущейСмене);
 	 ДополнитьТаблицу(ТаблицаВозвратаПоТекущейСмене,ТаблицаВозвратаВозвратаНеПоТекущейСмене);	
 		
 	Возврат ТаблицаВозвратаВозвратаНеПоТекущейСмене;
 	
 КонецФункции	
+
+// <Описание функции>
+//
+// Параметры:
+//  <Параметр1>  - <Тип.Вид> - <описание параметра>
+//                 <продолжение описания параметра>
+//  <Параметр2>  - <Тип.Вид> - <описание параметра>
+//                 <продолжение описания параметра>
+//
+// Возвращаемое значение:
+//   <Тип.Вид>   - <описание возвращаемого значения>
+//
+Функция УдалитьЛишниеТоварыВозврата(ТаблицаВозвратаВозвратаНеПоТекущейСмене)
+	
+	СписокНоенклатуры = ТаблицаВозвратаВозвратаНеПоТекущейСмене.ВыгрузитьКолонку(""code"");
+		
+	Запрос = Новый Запрос;
+	МВТ = Новый МенеджерВременныхТаблиц;
+ Запрос.МенеджерВременныхТаблиц = МВТ;
+	Запрос.Текст = 
+		""ВЫБРАТЬ
+		|	Номенклатура.Ссылка КАК Ссылка,
+		|	Номенклатура.ВидНоменклатуры КАК ВидНоменклатуры,
+		|	Номенклатура.Код КАК Код
+		|ИЗ
+		|	Справочник.Номенклатура КАК Номенклатура
+		|ГДЕ
+		|	Номенклатура.Код В(&Код)"";
+	
+	Запрос.УстановитьПараметр(""Код"", СписокНоенклатуры);
+	
+	тзТовары = Запрос.Выполнить().Выгрузить();
+	
+
+	
+	
+		
+	
+	ЗапросН = Новый Запрос;
+	ЗапросН.МенеджерВременныхТаблиц = МВТ;
+		
+	ВидНоменклатуры = Справочники.ВидыНоменклатуры.НайтиПоНаименованию(""Бутылка"");
+	ЗапросН.УстановитьПараметр(""ТЧ"", ТаблицаВозвратаВозвратаНеПоТекущейСмене);
+	ЗапросН.УстановитьПараметр(""тзТовары"", тзТовары);
+	ЗапросН.УстановитьПараметр(""ВидНоменклатуры"", ВидНоменклатуры);
+
+
+	
+	ЗапросН.Текст = ""ВЫБРАТЬ
+	               |	goodsitem.goodsitemid КАК goodsitemid,
+	               |	goodsitem.cashcode КАК cashcode,
+	               |	goodsitem.documentid КАК documentid,
+	               |	goodsitem.deptcode КАК deptcode,
+	               |	goodsitem.scode КАК scode,
+	               |	goodsitem.ttime КАК ttime,
+	               |	goodsitem.opcode КАК opcode,
+	               |	goodsitem.status КАК status,
+	               |	goodsitem.bcode КАК bcode,
+	               |	goodsitem.name КАК name,
+	               |	goodsitem.articul КАК articul,
+	               |	goodsitem.measure КАК measure,
+	               |	goodsitem.bcode_mode КАК bcode_mode,
+	               |	goodsitem.bcode_main КАК bcode_main,
+	               |	goodsitem.bquant КАК bquant,
+	               |	goodsitem.bquant_mode КАК bquant_mode,
+	               |	goodsitem.ost_modif КАК ost_modif,
+	               |	goodsitem.cquant КАК cquant,
+	               |	goodsitem.pricetype КАК pricetype,
+	               |	goodsitem.pricevcode КАК pricevcode,
+	               |	goodsitem.price КАК price,
+	               |	goodsitem.minprice КАК minprice,
+	               |	goodsitem.pricei КАК pricei,
+	               |	goodsitem.price_mode КАК price_mode,
+	               |	goodsitem.tindex КАК tindex,
+	               |	goodsitem.disc_perc КАК disc_perc,
+	               |	goodsitem.disc_abs КАК disc_abs,
+	               |	goodsitem.sumi КАК sumi,
+	               |	goodsitem.sumb КАК sumb,
+	               |	goodsitem.sumn КАК sumn,
+	               |	goodsitem.sume КАК sume,
+	               |	goodsitem.vatcode1 КАК vatcode1,
+	               |	goodsitem.vatrate1 КАК vatrate1,
+	               |	goodsitem.vatsum1 КАК vatsum1,
+	               |	goodsitem.vatcode2 КАК vatcode2,
+	               |	goodsitem.vatrate2 КАК vatrate2,
+	               |	goodsitem.vatsum2 КАК vatsum2,
+	               |	goodsitem.vatcode3 КАК vatcode3,
+	               |	goodsitem.vatrate3 КАК vatrate3,
+	               |	goodsitem.vatsum3 КАК vatsum3,
+	               |	goodsitem.vatcode4 КАК vatcode4,
+	               |	goodsitem.vatrate4 КАК vatrate4,
+	               |	goodsitem.vatsum4 КАК vatsum4,
+	               |	goodsitem.vatcode5 КАК vatcode5,
+	               |	goodsitem.vatrate5 КАК vatrate5,
+	               |	goodsitem.vatsum5 КАК vatsum5,
+	               |	goodsitem.docnum КАК docnum,
+	               |	goodsitem.c_link КАК c_link,
+	               |	goodsitem.code КАК code,
+	               |	goodsitem.posnum КАК posnum,
+	               |	goodsitem.frnum КАК frnum,
+	               |	goodsitem.extendetoptions КАК extendetoptions,
+	               |	goodsitem.opid КАК opid,
+	               |	goodsitem.buttonid КАК buttonid,
+	               |	goodsitem.paymentitemid КАК paymentitemid,
+	               |	goodsitem.departmentid КАК departmentid,
+	               |	goodsitem.taramode КАК taramode,
+	               |	goodsitem.taracapacity КАК taracapacity,
+	               |	goodsitem.extdocid КАК extdocid,
+	               |	goodsitem.additionaldata КАК additionaldata,
+	               |	goodsitem.reverseoperation КАК reverseoperation,
+	               |	goodsitem.update_time КАК update_time,
+	               |	goodsitem.aspectschemecode КАК aspectschemecode,
+	               |	goodsitem.aspectvaluesetcode КАК aspectvaluesetcode,
+	               |	goodsitem.excisemark КАК excisemark,
+	               |	goodsitem.inn КАК inn,
+	               |	goodsitem.kpp КАК kpp,
+	               |	goodsitem.alcoholpercent КАК alcoholpercent,
+	               |	goodsitem.tags КАК tags,
+	               |	goodsitem.consultantid КАК consultantid,
+	               |	goodsitem.alctypecode КАК alctypecode,
+	               |	goodsitem.alcocode КАК alcocode,
+	               |	goodsitem.additionalexcisemark КАК additionalexcisemark,
+	               |	goodsitem.packingprice КАК packingprice,
+	               |	goodsitem.additionalbarcode КАК additionalbarcode,
+	               |	goodsitem.paymentobject КАК paymentobject,
+	               |	goodsitem.paymentmethod КАК paymentmethod,
+	               |	goodsitem.minretailprice КАК minretailprice,
+	               |	goodsitem.customsdeclarationnumber КАК customsdeclarationnumber,
+	               |	goodsitem.manufacturercountrycode КАК manufacturercountrycode,
+	               |	goodsitem.pricedoctype КАК pricedoctype,
+	               |	goodsitem.excisetype КАК excisetype,
+	               |	goodsitem.prepackaged КАК prepackaged,
+	               |	goodsitem.ntin КАК ntin
+	               |ПОМЕСТИТЬ тзТовары
+	               |ИЗ
+	               |	&ТЧ КАК goodsitem
+	               |;
+	               |
+	               |////////////////////////////////////////////////////////////////////////////////
+	               |ВЫБРАТЬ
+	               |	тзТовары.Ссылка КАК Ссылка,
+	               |	тзТовары.Код КАК Код,
+	               |	тзТовары.ВидНоменклатуры КАК ВидНоменклатуры
+	               |ПОМЕСТИТЬ ТаблицаДок
+	               |ИЗ
+	               |	&тзТовары КАК тзТовары
+	               |ГДЕ
+	               |	НЕ тзТовары.ВидНоменклатуры = &ВидНоменклатуры
+	               |;
+	               |
+	               |////////////////////////////////////////////////////////////////////////////////
+	               |ВЫБРАТЬ
+	               |	тзТовары.goodsitemid КАК goodsitemid,
+	               |	тзТовары.cashcode КАК cashcode,
+	               |	тзТовары.documentid КАК documentid,
+	               |	тзТовары.deptcode КАК deptcode,
+	               |	тзТовары.scode КАК scode,
+	               |	тзТовары.ttime КАК ttime,
+	               |	тзТовары.opcode КАК opcode,
+	               |	тзТовары.status КАК status,
+	               |	тзТовары.bcode КАК bcode,
+	               |	тзТовары.name КАК name,
+	               |	тзТовары.articul КАК articul,
+	               |	тзТовары.measure КАК measure,
+	               |	тзТовары.bcode_mode КАК bcode_mode,
+	               |	тзТовары.bcode_main КАК bcode_main,
+	               |	тзТовары.bquant КАК bquant,
+	               |	тзТовары.bquant_mode КАК bquant_mode,
+	               |	тзТовары.ost_modif КАК ost_modif,
+	               |	тзТовары.cquant КАК cquant,
+	               |	тзТовары.pricetype КАК pricetype,
+	               |	тзТовары.pricevcode КАК pricevcode,
+	               |	тзТовары.price КАК price,
+	               |	тзТовары.minprice КАК minprice,
+	               |	тзТовары.pricei КАК pricei,
+	               |	тзТовары.price_mode КАК price_mode,
+	               |	тзТовары.tindex КАК tindex,
+	               |	тзТовары.disc_perc КАК disc_perc,
+	               |	тзТовары.disc_abs КАК disc_abs,
+	               |	тзТовары.sumi КАК sumi,
+	               |	тзТовары.sumb КАК sumb,
+	               |	тзТовары.sumn КАК sumn,
+	               |	тзТовары.sume КАК sume,
+	               |	тзТовары.vatcode1 КАК vatcode1,
+	               |	тзТовары.vatrate1 КАК vatrate1,
+	               |	тзТовары.vatsum1 КАК vatsum1,
+	               |	тзТовары.vatcode2 КАК vatcode2,
+	               |	тзТовары.vatrate2 КАК vatrate2,
+	               |	тзТовары.vatsum2 КАК vatsum2,
+	               |	тзТовары.vatcode3 КАК vatcode3,
+	               |	тзТовары.vatrate3 КАК vatrate3,
+	               |	тзТовары.vatsum3 КАК vatsum3,
+	               |	тзТовары.vatcode4 КАК vatcode4,
+	               |	тзТовары.vatrate4 КАК vatrate4,
+	               |	тзТовары.vatsum4 КАК vatsum4,
+	               |	тзТовары.vatcode5 КАК vatcode5,
+	               |	тзТовары.vatrate5 КАК vatrate5,
+	               |	тзТовары.vatsum5 КАК vatsum5,
+	               |	тзТовары.docnum КАК docnum,
+	               |	тзТовары.c_link КАК c_link,
+	               |	тзТовары.code КАК code,
+	               |	тзТовары.posnum КАК posnum,
+	               |	тзТовары.frnum КАК frnum,
+	               |	тзТовары.extendetoptions КАК extendetoptions,
+	               |	тзТовары.opid КАК opid,
+	               |	тзТовары.buttonid КАК buttonid,
+	               |	тзТовары.paymentitemid КАК paymentitemid,
+	               |	тзТовары.departmentid КАК departmentid,
+	               |	тзТовары.taramode КАК taramode,
+	               |	тзТовары.taracapacity КАК taracapacity,
+	               |	тзТовары.extdocid КАК extdocid,
+	               |	тзТовары.additionaldata КАК additionaldata,
+	               |	тзТовары.reverseoperation КАК reverseoperation,
+	               |	тзТовары.update_time КАК update_time,
+	               |	тзТовары.aspectschemecode КАК aspectschemecode,
+	               |	тзТовары.aspectvaluesetcode КАК aspectvaluesetcode,
+	               |	тзТовары.excisemark КАК excisemark,
+	               |	тзТовары.inn КАК inn,
+	               |	тзТовары.kpp КАК kpp,
+	               |	тзТовары.alcoholpercent КАК alcoholpercent,
+	               |	тзТовары.tags КАК tags,
+	               |	тзТовары.consultantid КАК consultantid,
+	               |	тзТовары.alctypecode КАК alctypecode,
+	               |	тзТовары.alcocode КАК alcocode,
+	               |	тзТовары.additionalexcisemark КАК additionalexcisemark,
+	               |	тзТовары.packingprice КАК packingprice,
+	               |	тзТовары.additionalbarcode КАК additionalbarcode,
+	               |	тзТовары.paymentobject КАК paymentobject,
+	               |	тзТовары.paymentmethod КАК paymentmethod,
+	               |	тзТовары.minretailprice КАК minretailprice,
+	               |	тзТовары.customsdeclarationnumber КАК customsdeclarationnumber,
+	               |	тзТовары.manufacturercountrycode КАК manufacturercountrycode,
+	               |	тзТовары.pricedoctype КАК pricedoctype,
+	               |	тзТовары.excisetype КАК excisetype,
+	               |	тзТовары.prepackaged КАК prepackaged,
+	               |	тзТовары.ntin КАК ntin
+	               |ИЗ
+	               |	тзТовары КАК тзТовары
+	               |		ПРАВОЕ СОЕДИНЕНИЕ ТаблицаДок КАК ТаблицаДок
+	               |		ПО тзТовары.code = ТаблицаДок.Код"";
+	
+	
+	РезультатЗапроса = ЗапросН.Выполнить().Выгрузить();
+	
+	Возврат РезультатЗапроса;
+	
+КонецФункции // УдалитьЛишниеТоварыВозврата(ТаблицаВозвратаВозвратаНеПоТекущейСмене)()
+ 
 
 // <Описание функции>
 //
@@ -1518,6 +1766,7 @@
 
 	Входит = ?(ТекущаяСмена,""И НЕ goodsitem.alctypecode > 0"","""");
 	Больше = ?(ТекущаяСмена,""И НЕ goodsitem.alcoholpercent > 0"","""");
+	Тара = ?(ТекущаяСмена,""И НЕ goodsitem.alcoholpercent > 0"","""");
 	
 	КодВозврата = 58;
 	
