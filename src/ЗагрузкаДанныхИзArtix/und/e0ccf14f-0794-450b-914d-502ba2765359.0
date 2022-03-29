@@ -1921,51 +1921,53 @@
 //
 Процедура ПроверитьЗначенияСумм(СсылкаНаНовыйДокумент,текКассоваяСмена)
 	
+	СуммаБезналичная = 0; 	
+	
 	Запрос = Новый Запрос;
 	Запрос.Текст = 
-		""ВЫБРАТЬ
-		|	workshift.workshiftid КАК workshiftid,
-		|	workshift.storeId КАК storeId,
-		|	workshift.shiftnum КАК shiftnum,
-		|	workshift.cashcode КАК cashcode,
-		|	workshift.cashId КАК cashId,
-		|	workshift.scode КАК scode,
-		|	workshift.time_beg КАК time_beg,
-		|	workshift.time_end КАК time_end,
-		|	workshift.checknum1 КАК checknum1,
-		|	workshift.checknum2 КАК checknum2,
-		|	workshift.vb КАК vb,
-		|	workshift.vn КАК vn,
-		|	workshift.ve КАК ve,
-		|	workshift.mode1 КАК mode1,
-		|	workshift.mode2 КАК mode2,
-		|	workshift.arcpath КАК arcpath,
-		|	workshift.shifttype КАК shifttype,
-		|	workshift.dateincrement КАК dateincrement,
-		|	workshift.shopcode КАК shopcode,
-		|	workshift.changed КАК changed,
-		|	workshift.sumSale КАК sumSale,
-		|	workshift.sumGain КАК sumGain,
-		|	workshift.sumDrawer КАК sumDrawer,
-		|	workshift.version КАК version,
-		|	workshift.postype КАК postype,
-		|	workshift.revision КАК revision,
-		|	workshift.firstchecktime КАК firstchecktime,
-		|	workshift.update_time КАК update_time,
-		|	workshift.sumsalecash КАК sumsalecash,
-		|	workshift.sumsalenoncash КАК sumsalenoncash,
-		|	workshift.sumsaleother КАК sumsaleother,
-		|	workshift.sumgaincash КАК sumgaincash,
-		|	workshift.sumgainnoncash КАК sumgainnoncash,
-		|	workshift.sumrefund КАК sumrefund,
-		|	workshift.sumrefundcash КАК sumrefundcash,
-		|	workshift.sumrefundnoncash КАК sumrefundnoncash,
-		|	workshift.countsale КАК countsale,
-		|	workshift.countrefund КАК countrefund
-		|ИЗ
-		|	ВнешнийИсточникДанных.КассовыйСервер.Таблица.workshift КАК workshift
-		|ГДЕ
-		|	workshift.workshiftid = &workshiftid"";
+	""ВЫБРАТЬ
+	|	workshift.workshiftid КАК workshiftid,
+	|	workshift.storeId КАК storeId,
+	|	workshift.shiftnum КАК shiftnum,
+	|	workshift.cashcode КАК cashcode,
+	|	workshift.cashId КАК cashId,
+	|	workshift.scode КАК scode,
+	|	workshift.time_beg КАК time_beg,
+	|	workshift.time_end КАК time_end,
+	|	workshift.checknum1 КАК checknum1,
+	|	workshift.checknum2 КАК checknum2,
+	|	workshift.vb КАК vb,
+	|	workshift.vn КАК vn,
+	|	workshift.ve КАК ve,
+	|	workshift.mode1 КАК mode1,
+	|	workshift.mode2 КАК mode2,
+	|	workshift.arcpath КАК arcpath,
+	|	workshift.shifttype КАК shifttype,
+	|	workshift.dateincrement КАК dateincrement,
+	|	workshift.shopcode КАК shopcode,
+	|	workshift.changed КАК changed,
+	|	workshift.sumSale КАК sumSale,
+	|	workshift.sumGain КАК sumGain,
+	|	workshift.sumDrawer КАК sumDrawer,
+	|	workshift.version КАК version,
+	|	workshift.postype КАК postype,
+	|	workshift.revision КАК revision,
+	|	workshift.firstchecktime КАК firstchecktime,
+	|	workshift.update_time КАК update_time,
+	|	workshift.sumsalecash КАК sumsalecash,
+	|	workshift.sumsalenoncash КАК sumsalenoncash,
+	|	workshift.sumsaleother КАК sumsaleother,
+	|	workshift.sumgaincash КАК sumgaincash,
+	|	workshift.sumgainnoncash КАК sumgainnoncash,
+	|	workshift.sumrefund КАК sumrefund,
+	|	workshift.sumrefundcash КАК sumrefundcash,
+	|	workshift.sumrefundnoncash КАК sumrefundnoncash,
+	|	workshift.countsale КАК countsale,
+	|	workshift.countrefund КАК countrefund
+	|ИЗ
+	|	ВнешнийИсточникДанных.КассовыйСервер.Таблица.workshift КАК workshift
+	|ГДЕ
+	|	workshift.workshiftid = &workshiftid"";
 	
 	Запрос.УстановитьПараметр(""workshiftid"", текКассоваяСмена.Номер);
 	
@@ -1973,23 +1975,77 @@
 	
 	ВыборкаДетальныеЗаписи = РезультатЗапроса.Выбрать();
 	
+	докОРП = ?(ТипЗнч(СсылкаНаНовыйДокумент)=Тип(""ДокументСсылка.ОтчетОРозничныхПродажах""),Истина,Ложь);
+	
+	ТипДок = ?(докОРП,""ОтчетОРозничныхПродажах"",""ОтчетОРозничныхВозвратах"");
+	
+	Запрос = Новый Запрос;
+	Запрос.Текст = СтрШаблон(  
+	""ВЫБРАТЬ
+	|	СУММА(%1ОплатаПлатежнымиКартами.Сумма) КАК Сумма
+	|ИЗ
+	|	Документ.%1.ОплатаПлатежнымиКартами КАК %1ОплатаПлатежнымиКартами
+	|ГДЕ
+	|	%1ОплатаПлатежнымиКартами.Ссылка = &Ссылка"",ТипДок);
+	
+	Запрос.УстановитьПараметр(""Ссылка"", СсылкаНаНовыйДокумент);
+	
+	РезультатЗапроса = Запрос.Выполнить();
+	
+	ВыборкаДетальныеЗаписи = РезультатЗапроса.Выбрать();
+	
+	Если ВыборкаДетальныеЗаписи.Следующий() Тогда
+		СуммаБезналичная = ВыборкаДетальныеЗаписи.Сумма;
+	КонецЕсли;
+	
 	Если ВыборкаДетальныеЗаписи.Следующий()  Тогда
-		
-		СуммаПродажиНаличные = (ВыборкаДетальныеЗаписи.sumsalecash
-		+ ВыборкаДетальныеЗаписи.sumsalenoncash
-		+ ВыборкаДетальныеЗаписи.sumsaleother) =  СсылкаНаНовыйДокумент.СуммаДокумента ;
-		
-		Если НЕ СуммаПродажиНаличные Тогда
+		Если докОРП Тогда
 			
-			ЗаписьЖурналаРегистрации(""Загрузка из Artix"", УровеньЖурналаРегистрации.Ошибка,,,
-		""Не совпадает сумма ОРП - "" + СсылкаНаНовыйДокумент.Номер + "" и кассовой смены - "" + текКассоваяСмена.Номер);
-
-			Сообщить (""Не совпадает сумма ОРП - "" + СсылкаНаНовыйДокумент.Номер + "" и кассовой смены - "" + текКассоваяСмена.Номер);
-		
+			СуммаПродажи = (ВыборкаДетальныеЗаписи.sumsalecash
+			+ ВыборкаДетальныеЗаписи.sumsalenoncash
+			+ ВыборкаДетальныеЗаписи.sumsaleother) =  СсылкаНаНовыйДокумент.СуммаДокумента ;
+			
+			Если НЕ СуммаПродажи Тогда
+				ЗаписьЖурналаРегистрации(""Загрузка из Artix"", УровеньЖурналаРегистрации.Ошибка,,,
+				""Не совпадает сумма ОРП  - "" + СсылкаНаНовыйДокумент.Номер + "" и кассовой смены - "" + текКассоваяСмена.Номер);
+				
+				Сообщить (""Не совпадает сумма ОРП - "" + СсылкаНаНовыйДокумент.Номер + "" и кассовой смены - "" + текКассоваяСмена.Номер);
+			КонецЕсли; 
+			
+			// Безнал
+			СуммаПродажиБезНаличные =  ВыборкаДетальныеЗаписи.sumsalenoncash =  СуммаБезналичная;
+			
+			Если НЕ СуммаПродажиБезНаличные Тогда
+				ЗаписьЖурналаРегистрации(""Загрузка из Artix"", УровеньЖурналаРегистрации.Ошибка,,,
+				""Не совпадает сумма б/н ОРП - "" + СсылкаНаНовыйДокумент.Номер + "" и кассовой смены - "" + текКассоваяСмена.Номер);
+				
+				Сообщить (""Не совпадает сумма б/н ОРП - "" + СсылкаНаНовыйДокумент.Номер + "" и кассовой смены - "" + текКассоваяСмена.Номер);
+			КонецЕсли; 
+			
+		Иначе
+			
+			СуммаВозвратов = (ВыборкаДетальныеЗаписи.sumrefund = СсылкаНаНовыйДокумент.СуммаДокумента) ;
+			
+			Если НЕ СуммаВозвратов Тогда
+				ЗаписьЖурналаРегистрации(""Загрузка из Artix"", УровеньЖурналаРегистрации.Ошибка,,,
+				""Не совпадает сумма ОРВ  - "" + СсылкаНаНовыйДокумент.Номер + "" и кассовой смены - "" + текКассоваяСмена.Номер);
+				
+				Сообщить (""Не совпадает сумма ОРП - "" + СсылкаНаНовыйДокумент.Номер + "" и кассовой смены - "" + текКассоваяСмена.Номер);
+			КонецЕсли; 
+			
+			// Безнал
+			СуммаВозвратовБезНаличные =  ВыборкаДетальныеЗаписи.sumrefundnoncash =  СуммаБезналичная;
+			
+			Если НЕ СуммаВозвратовБезНаличные Тогда
+				ЗаписьЖурналаРегистрации(""Загрузка из Artix"", УровеньЖурналаРегистрации.Ошибка,,,
+				""Не совпадает сумма б/н ОРВ - "" + СсылкаНаНовыйДокумент.Номер + "" и кассовой смены - "" + текКассоваяСмена.Номер);
+				
+				Сообщить (""Не совпадает сумма б/н ОРВ  - "" + СсылкаНаНовыйДокумент.Номер + "" и кассовой смены - "" + текКассоваяСмена.Номер);
+			КонецЕсли; 
+			
 		КонецЕсли; 
-		
 	КонецЕсли;	
-
+	
 КонецПроцедуры // ПроверитьЗначениеСумм()()
  
 
