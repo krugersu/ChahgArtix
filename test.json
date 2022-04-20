@@ -1,0 +1,9 @@
+{
+  "code": "1",
+  "rangefrom": 30,
+  "rangeto": 40,
+  "name": "Сертификаты",
+  "sum": 300,
+  "inputmask": 31,
+  "discountcampaign": "test campaign"
+}
